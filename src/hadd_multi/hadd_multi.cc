@@ -1,6 +1,7 @@
 #include <iostream>
 #include <format>
 #include <concepts>
+#include <numeric>
 #include <span>
 #include <valarray>
 #include <stdfloat>
@@ -79,6 +80,35 @@ auto main() -> int {
       for (int i = 0; i < data_size; i++) {
         dptr[j] += sptr[data_size * j + i];
       }
+    }
+  }
+  end = std::chrono::high_resolution_clock::now();
+  time =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / local_count;
+  std::cout << std::format("{}: {}", time, mse(refptr, dptr, data_size)) << std::endl;
+
+  std::cout << "single span+accumulate" << std::endl;
+  local_count = slow_count;
+  start       = std::chrono::high_resolution_clock::now();
+  for (auto loop_i : std::views::iota(0, local_count)) {
+    for (int j = 0; j < data_size; j++) {
+      std::span<float> ssp(sptr + data_size * j, data_size);
+      dptr[j] = std::accumulate(ssp.begin(), ssp.end(), 0.0f);
+    }
+  }
+  end = std::chrono::high_resolution_clock::now();
+  time =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / local_count;
+  std::cout << std::format("{}: {}", time, mse(refptr, dptr, data_size)) << std::endl;
+
+  std::cout << "multi span+accumulate" << std::endl;
+  local_count = fast_count;
+  start       = std::chrono::high_resolution_clock::now();
+  for (auto loop_i : std::views::iota(0, local_count)) {
+#pragma omp parallel for
+    for (int j = 0; j < data_size; j++) {
+      std::span<float> ssp(sptr + data_size * j, data_size);
+      dptr[j] = std::accumulate(ssp.begin(), ssp.end(), 0.0f);
     }
   }
   end = std::chrono::high_resolution_clock::now();

@@ -187,10 +187,10 @@ auto main() -> int {
     for (int32_t i = 0; i < data_size; i += 16) {
       __m256 dptri_v1 = _mm256_setzero_ps();
       __m256 dptri_v2 = _mm256_setzero_ps();
-      float* dptri  =  dptr + i;
+      float* dptri    = dptr + i;
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++) {
-        float* sptrij  =  sptr + i + data_size * j;
+        float* sptrij = sptr + i + data_size * j;
         dptri_v1      = _mm256_add_ps(dptri_v1, _mm256_loadu_ps(sptrij));
         dptri_v2      = _mm256_add_ps(dptri_v2, _mm256_loadu_ps(sptrij + 8));
       }
