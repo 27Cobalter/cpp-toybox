@@ -122,3 +122,34 @@ void LUT::Convert<LUT::Method::avx512_lut>(uint16_t* src, uint8_t* dst, int32_t 
     _mm256_storeu_epi8(dptri + half_step, dst_v);
   }
 }
+
+template <>
+void LUT::Convert<LUT::Method::avx512_lut_permute>(uint16_t* src, uint8_t* dst, int32_t data_size) {
+  constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
+  constexpr int32_t half_step = step >> 1;
+  int32_t* lptr               = reinterpret_cast<int32_t*>(lut_.get());
+
+  const __m512i zero_v = _mm512_setzero_si512();
+  for (int i = 0; i < data_size; i += step) {
+    uint16_t* sptri = src + i;
+    uint8_t* dptri  = dst + i;
+    __m512i src_v   = _mm512_loadu_epi16(sptri);
+    __m512i idx_hi  = _mm512_unpackhi_epi16(src_v, zero_v);
+    __m512i idx_lo  = _mm512_unpacklo_epi16(src_v, zero_v);
+    __m512i hi      = _mm512_i32gather_epi32(idx_hi, lptr, sizeof(uint32_t));
+    __m512i lo      = _mm512_i32gather_epi32(idx_lo, lptr, sizeof(uint32_t));
+    __m512i pack    = _mm512_packus_epi16(lo, hi);
+    __m256i dst_v   = _mm512_cvtepi16_epi8(pack);
+    _mm256_storeu_epi8(dptri, dst_v);
+    // permutex2var_epi8
+
+    src_v  = _mm512_loadu_epi16(sptri + half_step);
+    idx_hi = _mm512_unpackhi_epi16(src_v, zero_v);
+    idx_lo = _mm512_unpacklo_epi16(src_v, zero_v);
+    hi     = _mm512_i32gather_epi32(idx_hi, lptr, sizeof(uint32_t));
+    lo     = _mm512_i32gather_epi32(idx_lo, lptr, sizeof(uint32_t));
+    pack   = _mm512_packus_epi16(lo, hi);
+    dst_v  = _mm512_cvtepi16_epi8(pack);
+    _mm256_storeu_epi8(dptri + half_step, dst_v);
+  }
+}

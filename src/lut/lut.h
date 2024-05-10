@@ -10,7 +10,7 @@ public:
   int32_t range_max_;
 
 public:
-  enum class Method { naive_lut, naive_calc, avx2_lut, avx2_calc, avx512_lut, avx512_calc };
+  enum class Method { naive_lut, naive_calc, avx2_lut, avx2_calc, avx512_lut, avx512_calc, avx512_lut_permute };
   LUT(int32_t range_max);
   template<Method m>
   void Create(int32_t lut_min, int32_t lut_max);
