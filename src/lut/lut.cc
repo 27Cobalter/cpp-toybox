@@ -38,6 +38,7 @@ template <>
 void LUT::Create_Impl<LUT::Method::naive_calc>(int32_t lut_min, int32_t lut_max) {
   coeff_   = 255.0 / (lut_max - lut_min);
   lut_min_ = lut_min;
+  lut_max_ = lut_max;
 }
 
 template <>
@@ -332,6 +333,7 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc>(uint16_t* src, uint8_t* dst
   }
 }
 
+// intweight実装はcoeffが1以上の場合, (max-min) < 255の場合に桁溢れでバグ
 template <> // WIP
 void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   constexpr int32_t step      = 256 / 8 / sizeof(uint8_t);
@@ -371,12 +373,11 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight>(uint16_t* src, ui
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 
-  constexpr int32_t coeff_bits = 16;
-  const __m512i coeff_v = _mm512_set1_epi32(static_cast<uint16_t>(coeff_ * (1 << coeff_bits) - 1));
+  const __m512i coeff_v      = _mm512_set1_epi16(coeff_ * (0xFFFF));
   // std::cout << coeff_ << " " << static_cast<uint16_t>(coeff_ * (1 << coeff_bits)) <<
   // std::endl;
   const __m512i lut_min_v         = _mm512_set1_epi16(lut_min_);
-  const __m512i uint8_max_v       = _mm512_set1_epi32(255);
+  const __m512i uint8_max_v       = _mm512_set1_epi16(255);
   const __m512i zero_v            = _mm512_setzero_si512();
   const uint8_t permute_index[64] = {
       0,         2,         4,         6,         8,         10,        12,        14,
@@ -401,16 +402,17 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight>(uint16_t* src, ui
 
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri = src + i;
-
     __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
-    __m512i val       = _mm512_mulhi_epi16(src_sub_v, coeff_v);
+    __m512i val       = _mm512_mulhi_epu16(src_sub_v, coeff_v);
     __m512i dst_v1    = _mm512_min_epu16(val, uint8_max_v);
 
-    src_sub_v      = _mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v);
-    val            = _mm512_mulhi_epi16(src_sub_v, coeff_v);
-    __m512i dst_v2 = _mm512_min_epu16(val, uint8_max_v);
+    // half
+    src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v);
+    val       = _mm512_mulhi_epu16(src_sub_v, coeff_v);
+    __m512i dst_v2    = _mm512_min_epu16(val, uint8_max_v);
 
-    _mm512_storeu_epi8(dst + i, _mm512_permutex2var_epi8(dst_v1, permute_index_v, dst_v2));
+    __m512i dst_v = _mm512_permutex2var_epi8(dst_v1, permute_index_v, dst_v2);
+    _mm512_storeu_epi32(dst + i, dst_v);
   }
 }
 

@@ -8,6 +8,7 @@ private:
 public: // for test
   std::shared_ptr<uint32_t[]> lut_ = nullptr;
   int32_t lut_min_                 = 0;
+  int32_t lut_max_                 = 0;
   float coeff_                     = 0;
   int32_t range_max_;
 
@@ -43,9 +44,9 @@ public:
   void Convert(uint16_t* src, uint8_t* dst, int32_t data_size);
 };
 
-inline void LUT::Create(int32_t lut_min, int32_t lut_max){
+inline void LUT::Create(int32_t lut_min, int32_t lut_max) {
   (this->*Create_AutoImpl)(lut_min, lut_max);
 }
-inline void LUT::Convert(uint16_t* src, uint8_t* dst, int32_t data_size){
+inline void LUT::Convert(uint16_t* src, uint8_t* dst, int32_t data_size) {
   (this->*Convert_AutoImpl)(src, dst, data_size);
 }

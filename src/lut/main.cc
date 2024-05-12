@@ -27,9 +27,10 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
 }
 
 auto main() -> int {
-  // constexpr int32_t loop_count = 1000;
-  constexpr int32_t loop_count = 1;
-  std::valarray<int32_t> width_samples{512};
+  constexpr int32_t loop_count = 1000;
+  // constexpr int32_t loop_count = 1;
+  std::valarray<int32_t> width_samples{1024};
+  // std::valarray<int32_t> width_samples{512};
 
   using IIIS                = InstructionInfo::InstructionSet;
   const bool supported_avx2       = InstructionInfo::IsSupported(IIIS::AVX2);
@@ -60,8 +61,8 @@ auto main() -> int {
     uint8_t* rptr  = ref.get();
     uint32_t ref_lut[std::numeric_limits<uint16_t>::max() + 1];
 
-    constexpr int32_t lut_min = 0x000;
-    constexpr int32_t lut_max = 0x0FF;
+    constexpr int32_t lut_min = 0xF00;
+    constexpr int32_t lut_max = 0xFFF;
     const int32_t data_size   = width * width;
 
     // create source
