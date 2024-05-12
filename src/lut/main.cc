@@ -28,7 +28,7 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
 
 auto main() -> int {
   constexpr int32_t loop_count = 1000;
-  std::valarray<int32_t> width_samples{1024};
+  std::valarray<int32_t> width_samples{2048};
 
   using IIIS                = InstructionInfo::InstructionSet;
   const bool supported_avx2       = InstructionInfo::IsSupported(IIIS::AVX2);
@@ -39,9 +39,15 @@ auto main() -> int {
   int32_t time_count;
   float diff;
 
+#ifdef __MSC_VER
   std::shared_ptr<uint16_t[]> src(new uint16_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> dst(new uint8_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> ref(new uint8_t[width_samples.max() * width_samples.max()]);
+#else
+  std::shared_ptr<uint16_t[]> src(new(std::align_val_t(64)) uint16_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> dst(new(std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> ref(new(std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
+#endif
 
   // constexpr int32_t LUT_END = static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) + 1;
   constexpr int32_t LUT_END = 0xFFFF + 1;

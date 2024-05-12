@@ -7,8 +7,11 @@
 #include <InstructionInfo.h>
 
 LUT::LUT(int32_t range_max) : range_max_(range_max) {
-  // lut_       = std::shared_ptr<uint32_t[]>(new (std::align_val_t(64)) uint32_t[range_max]);
+#ifdef __MSC_VER
   lut_ = std::shared_ptr<uint32_t[]>(new uint32_t[range_max]);
+#else
+  lut_       = std::shared_ptr<uint32_t[]>(new (std::align_val_t(64)) uint32_t[range_max]);
+#endif
   ImplSelector();
 }
 
@@ -240,7 +243,6 @@ void LUT::Convert_Impl<LUT::Method::avx512f_calc>(uint16_t* src, uint8_t* dst,
                                                   int32_t data_size) {
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
-  int32_t* lptr               = reinterpret_cast<int32_t*>(lut_.get());
 
   const __m512 coeff_v      = _mm512_set1_ps(coeff_);
   const __m512i lut_min_v   = _mm512_set1_epi16(lut_min_);
@@ -279,7 +281,6 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc>(uint16_t* src, uint8_t* dst
                                                      int32_t data_size) {
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
-  int32_t* lptr               = reinterpret_cast<int32_t*>(lut_.get());
 
   const __m512 coeff_v      = _mm512_set1_ps(coeff_);
   const __m512i lut_min_v   = _mm512_set1_epi16(lut_min_);
@@ -306,7 +307,6 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc>(uint16_t* src, uint8_t* dst
 
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri   = src + i;
-    uint8_t* dptri    = dst + i;
     __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
     __m512i srcs_hi   = _mm512_unpackhi_epi16(src_sub_v, zero_v);
     __m512i srcs_lo   = _mm512_unpacklo_epi16(src_sub_v, zero_v);
@@ -326,7 +326,7 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc>(uint16_t* src, uint8_t* dst
     lo             = _mm512_min_epi32(val_lo, uint8_max_v);
     __m512i dst_v2 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
 
-    _mm512_storeu_epi8(dptri, _mm512_mask_blend_epi32(0b1111111100000000, dst_v1, dst_v2));
+    _mm512_storeu_epi8(dst + i, _mm512_mask_blend_epi32(0b1111111100000000, dst_v1, dst_v2));
   }
 }
 
