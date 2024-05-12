@@ -1,19 +1,49 @@
 #pragma once
 
 #include <memory>
+#include <cstdint>
 
 class LUT {
-public:
+private:
+public: // for test
   std::shared_ptr<uint32_t[]> lut_ = nullptr;
-  int32_t min_ = 0;
-  int32_t coeff_ = 0;
+  int32_t lut_min_                 = 0;
+  float coeff_                     = 0;
   int32_t range_max_;
 
 public:
-  enum class Method { naive_lut, naive_calc, avx2_lut, avx2_calc, avx512_lut, avx512_calc, avx512_lut_permute };
+  enum class Method {
+    naive_lut,
+    naive_calc,
+    avx2_lut,
+    avx2_calc,
+    avx512f_lut,
+    avx512f_calc,
+    avx512vbmi_lut,
+    avx512vbmi_calc,
+  };
+
+private:
+public: // for test
+  template <Method m>
+  void Create_Impl(int32_t lut_min, int32_t lut_max);
+  template <Method m>
+  void Convert_Impl(uint16_t* src, uint8_t* dst, int32_t data_size);
+
+  void ImplSelector();
+  void (LUT::*Create_AutoImpl)(int32_t, int32_t);
+  void (LUT::*Convert_AutoImpl)(uint16_t*, uint8_t*, int32_t);
+
+public:
   LUT(int32_t range_max);
-  template<Method m>
+
   void Create(int32_t lut_min, int32_t lut_max);
-  template<Method m>
   void Convert(uint16_t* src, uint8_t* dst, int32_t data_size);
 };
+
+inline void LUT::Create(int32_t lut_min, int32_t lut_max){
+  (this->*Create_AutoImpl)(lut_min, lut_max);
+}
+inline void LUT::Convert(uint16_t* src, uint8_t* dst, int32_t data_size){
+  (this->*Convert_AutoImpl)(src, dst, data_size);
+}
