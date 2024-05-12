@@ -337,27 +337,32 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight>(uint16_t* src, uint8_t*
   constexpr int32_t step      = 256 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 
-  __m256i coeff_v      = _mm256_set1_epi16(coeff_ * 256);
+  __m256i coeff_v      = _mm256_set1_epi16(coeff_ * (0xFFFF));
   __m256i lut_min_v   = _mm256_set1_epi16(lut_min_);
-  __m256i uint8_max_v = _mm256_set1_epi32(255);
+  __m256i uint8_max_v = _mm256_set1_epi16(255);
   __m256i zero_v      = _mm256_setzero_si256();
 
-  const __m256i shuffle_idx = _mm256_set1_epi32(0x0C080400);
+  const __m256i shuffle_idx = _mm256_set1_epi64x(0x0E0C0A0806040200);
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri   = src + i;
     uint8_t* dptri    = dst + i;
     __m256i src_sub_v = _mm256_subs_epu16(_mm256_loadu_epi16(sptri), lut_min_v);
-    __m256i val       = _mm256_mulhi_epi16(src_sub_v, coeff_v);
+    __m256i val       = _mm256_mulhi_epu16(src_sub_v, coeff_v);
     __m256i dst_v1    = _mm256_min_epu16(val, uint8_max_v);
+
+    dst_v1 = _mm256_shuffle_epi8(dst_v1, shuffle_idx);
+    dst_v1 = _mm256_permute4x64_epi64(dst_v1, _MM_SHUFFLE(2, 1, 3, 0));
 
     // half
     src_sub_v = _mm256_subs_epu16(_mm256_loadu_epi16(sptri + half_step), lut_min_v);
-    val       = _mm256_mulhi_epi16(src_sub_v, coeff_v);
+    val       = _mm256_mulhi_epu16(src_sub_v, coeff_v);
     __m256i dst_v2    = _mm256_min_epu16(val, uint8_max_v);
 
-    __m256i dst_lo_v = _mm256_blend_epi32(dst_v1, dst_v2, 0b11110000);
+    dst_v2 = _mm256_shuffle_epi8(dst_v2, shuffle_idx);
+    dst_v2 = _mm256_permute4x64_epi64(dst_v2, _MM_SHUFFLE(2, 1, 3, 0));
 
-    _mm256_storeu_epi32(dptri, dst_lo_v);
+    __m256i dst_v = _mm256_blend_epi32(dst_v1, dst_v2, 0b11110000);
+    _mm256_storeu_epi32(dptri, dst_v);
   }
 }
 template <> // requires AVX-512 VBMI: Cannon Lake or Tager Lake later or Zen4 or Zen4 // WIP
@@ -400,24 +405,10 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight>(uint16_t* src, ui
     __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
     __m512i val       = _mm512_mulhi_epi16(src_sub_v, coeff_v);
     __m512i dst_v1    = _mm512_min_epu16(val, uint8_max_v);
-    // __m512i srcs_hi   = _mm512_unpackhi_epi16(src_sub_v, zero_v);
-    // __m512i srcs_lo   = _mm512_unpacklo_epi16(src_sub_v, zero_v);
-    // __m512i val_hi = _mm512_srli_epi32(_mm512_mullo_epi32(srcs_hi, coeff_v), coeff_bits);
-    // __m512i hi        = _mm512_min_epi32(val_hi, uint8_max_v);
-    // __m512i val_lo = _mm512_srli_epi32(_mm512_mullo_epi32(srcs_lo, coeff_v), coeff_bits);
-    // __m512i lo        = _mm512_min_epi32(val_lo, uint8_max_v);
-    // __m512i dst_v1 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
 
     src_sub_v      = _mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v);
     val            = _mm512_mulhi_epi16(src_sub_v, coeff_v);
     __m512i dst_v2 = _mm512_min_epu16(val, uint8_max_v);
-    // srcs_hi        = _mm512_unpackhi_epi16(src_sub_v, zero_v);
-    // srcs_lo        = _mm512_unpacklo_epi16(src_sub_v, zero_v);
-    // val_hi = _mm512_srli_epi32(_mm512_mullo_epi32(srcs_hi, coeff_v), coeff_bits);
-    // hi             = _mm512_min_epi32(val_hi, uint8_max_v);
-    // val_lo = _mm512_srli_epi32(_mm512_mullo_epi32(srcs_lo, coeff_v), coeff_bits);
-    // lo             = _mm512_min_epi32(val_lo, uint8_max_v);
-    // __m512i dst_v2 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
 
     _mm512_storeu_epi8(dst + i, _mm512_permutex2var_epi8(dst_v1, permute_index_v, dst_v2));
   }
