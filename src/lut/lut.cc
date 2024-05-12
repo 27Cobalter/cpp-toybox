@@ -9,7 +9,7 @@
 #include <iostream>
 
 LUT::LUT(int32_t range_max) : range_max_(range_max) {
-#ifdef __MSC_VER
+#ifdef _MSC_VER
   lut_ = std::shared_ptr<uint32_t[]>(new uint32_t[range_max]);
 #else
   lut_ = std::shared_ptr<uint32_t[]>(new (std::align_val_t(64)) uint32_t[range_max]);

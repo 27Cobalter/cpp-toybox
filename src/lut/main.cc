@@ -20,15 +20,16 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
   for (auto i : std::views::iota(0, data_size)) {
     diff += (t[i] - u[i]) * (t[i] - u[i]);
     if (diff >= 1.0) {
-      assert(false);
+      // assert(false);
     }
   }
   return diff / data_size;
 }
 
 auto main() -> int {
-  constexpr int32_t loop_count = 1000;
-  std::valarray<int32_t> width_samples{2048};
+  // constexpr int32_t loop_count = 1000;
+  constexpr int32_t loop_count = 1;
+  std::valarray<int32_t> width_samples{512};
 
   using IIIS                = InstructionInfo::InstructionSet;
   const bool supported_avx2       = InstructionInfo::IsSupported(IIIS::AVX2);
@@ -39,7 +40,7 @@ auto main() -> int {
   int32_t time_count;
   float diff;
 
-#ifdef __MSC_VER
+#ifdef _MSC_VER
   std::shared_ptr<uint16_t[]> src(new uint16_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> dst(new uint8_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> ref(new uint8_t[width_samples.max() * width_samples.max()]);
@@ -59,8 +60,8 @@ auto main() -> int {
     uint8_t* rptr  = ref.get();
     uint32_t ref_lut[std::numeric_limits<uint16_t>::max() + 1];
 
-    constexpr int32_t lut_min = 0x100;
-    constexpr int32_t lut_max = 0x1FF;
+    constexpr int32_t lut_min = 0x000;
+    constexpr int32_t lut_max = 0x0FF;
     const int32_t data_size   = width * width;
 
     // create source

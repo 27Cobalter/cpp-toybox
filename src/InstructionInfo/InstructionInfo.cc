@@ -2,7 +2,7 @@
 
 #include <format>
 
-#if defined(__MSVC)
+#if defined(_MSC_VER)
 #include <intrin.h>
 #elif defined(__GNUC__)
 #include <cpuid.h>
@@ -16,15 +16,15 @@ std::array<int32_t, 4> InstructionInfo::f7_;
 std::array<int32_t, 4> InstructionInfo::f7e1_;
 
 void InstructionInfo::CpuId(std::array<int32_t, 4>& reg, int32_t i) {
-#if defined(__MSVC)
-  __cpuid(reinterpret_cast<int32_t>(&reg[0]), i);
+#if defined(_MSC_VER)
+  __cpuid(reinterpret_cast<int32_t*>(&reg), i);
 #else
   __cpuid(i, reg[0], reg[1], reg[2], reg[3]);
 #endif
 }
 void InstructionInfo::CpuIdex(std::array<int32_t, 4>& reg, int32_t i, int32_t c) {
-#if defined(__MSVC)
-  __cpuidex(reinterpret_cast<int32_t>(&reg[0]), i, c);
+#if defined(_MSC_VER)
+  __cpuidex(reinterpret_cast<int32_t*>(&reg), i, c);
 #else
   __cpuid_count(i, c, reg[0], reg[1], reg[2], reg[3]);
 #endif

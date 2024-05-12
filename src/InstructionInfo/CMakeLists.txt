@@ -1,6 +1,6 @@
 option(BULID_INSTRUCTION_TEST "BUILD InstructionInfo Test" OFF)
 
-add_library(InstructionInfo SHARED "InstructionInfo.cc" "InstructionInfo.h")
+add_library(InstructionInfo STATIC "InstructionInfo.cc" "InstructionInfo.h")
 target_include_directories(InstructionInfo PUBLIC .)
 
 if(BULID_INSTRUCTION_TEST)
