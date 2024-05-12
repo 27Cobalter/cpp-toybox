@@ -191,6 +191,18 @@ auto main() -> int {
       std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
                                CalcDiff(dptr, rptr, data_size))
                 << std::endl;
+
+      // avx2 calc int weight convert
+      std::ranges::fill(std::span(dptr, data_size), 0);
+      start = std::chrono::high_resolution_clock::now();
+      for (auto current_loop : std::views::iota(0, loop_count)) {
+        lut.Convert_Impl<LUT::Method::avx2_calc_intweight>(sptr, dptr, data_size);
+      }
+      end        = std::chrono::high_resolution_clock::now();
+      time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
+                               CalcDiff(dptr, rptr, data_size))
+                << std::endl;
     }
 
     if (supported_avx512f) {
@@ -218,6 +230,18 @@ auto main() -> int {
       std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
                                CalcDiff(dptr, rptr, data_size))
                 << std::endl;
+
+      // avx512 calc int weight convert
+      std::ranges::fill(std::span(dptr, data_size), 0);
+      start = std::chrono::high_resolution_clock::now();
+      for (auto current_loop : std::views::iota(0, loop_count)) {
+        lut.Convert_Impl<LUT::Method::avx512vbmi_calc_intweight>(sptr, dptr, data_size);
+      }
+      end        = std::chrono::high_resolution_clock::now();
+      time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
+                               CalcDiff(dptr, rptr, data_size))
+                << std::endl;
     }
 
     std::cout << "Auto Impl" << std::endl;
@@ -233,7 +257,7 @@ auto main() -> int {
                              CalcDiff(lut.lut_.get(), ref_lut, LUT_END))
               << std::endl;
 
-    // avx2 lut convert
+    // Auto Convert
     std::ranges::fill(std::span(dptr, data_size), 0);
     start = std::chrono::high_resolution_clock::now();
     for (auto current_loop : std::views::iota(0, loop_count)) {

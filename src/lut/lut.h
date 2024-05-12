@@ -17,10 +17,12 @@ public:
     naive_calc,
     avx2_lut,
     avx2_calc,
+    avx2_calc_intweight,
     avx512f_lut,
     avx512f_calc,
     avx512vbmi_lut,
     avx512vbmi_calc,
+    avx512vbmi_calc_intweight,
   };
 
 private:
