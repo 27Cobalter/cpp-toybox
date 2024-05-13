@@ -19,18 +19,21 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
   float diff = 0;
   for (auto i : std::views::iota(0, data_size)) {
     diff += (t[i] - u[i]) * (t[i] - u[i]);
-    if (diff >= 1.0) {
-      // assert(false);
+    if (std::abs(static_cast<float>(t[i] - u[i])) > 0.1) {
+        // std::cout << std::format("(t[{}], u[{}]) = ({}, {})", i, i, t[i], u[i]) << std::endl;
     }
   }
   return diff / data_size;
 }
 
 auto main() -> int {
+#ifdef _MSC_VER
+  constexpr int32_t loop_count = 1;
+  std::valarray<int32_t> width_samples{64};
+#else
   constexpr int32_t loop_count = 1000;
-  // constexpr int32_t loop_count = 1;
   std::valarray<int32_t> width_samples{1024};
-  // std::valarray<int32_t> width_samples{512};
+#endif
 
   using IIIS                = InstructionInfo::InstructionSet;
   const bool supported_avx2       = InstructionInfo::IsSupported(IIIS::AVX2);
@@ -61,8 +64,13 @@ auto main() -> int {
     uint8_t* rptr  = ref.get();
     uint32_t ref_lut[std::numeric_limits<uint16_t>::max() + 1];
 
+#ifdef _MSC_VER
+    constexpr int32_t lut_min = 0x100;
+    constexpr int32_t lut_max = 0x1E3;
+#else
     constexpr int32_t lut_min = 0xF00;
     constexpr int32_t lut_max = 0xFFF;
+#endif
     const int32_t data_size   = width * width;
 
     // create source
@@ -73,7 +81,7 @@ auto main() -> int {
     // create reference
     for (auto i : std::views::iota(0, LUT_END)) {
       ref_lut[i] = std::clamp(
-          static_cast<int32_t>(255.0 / (lut_max - lut_min) * (i - lut_min) + 0.5), 0, 255);
+          static_cast<int32_t>(std::round(255.0 / (lut_max - lut_min) * (i - lut_min) + 0.5)), 0, 255);
     }
     std::cout << std::endl;
     for (auto i : std::views::iota(0, data_size)) {
