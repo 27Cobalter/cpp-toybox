@@ -1,5 +1,6 @@
 #include "lut.h"
 
+#include <cassert>
 #include <immintrin.h>
 
 
@@ -159,6 +160,7 @@ template <> // requires AVX-512 VBMI: Cannon Lake or Tager Lake later or Zen4 or
 void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* src,
                                                                      uint8_t* dst,
                                                                      int32_t data_size) {
+    assert(false);
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 

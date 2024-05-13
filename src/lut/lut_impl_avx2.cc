@@ -162,7 +162,7 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epi32>(uint16_t* src, ui
   __m256i uint8_max_v = _mm256_set1_epi32(255 * 256);
   __m256i zero_v      = _mm256_setzero_si256();
 
-  const __m256i shuffle_idx = _mm256_set1_epi64x(0x0F0D0B0907050301);
+  const __m256i shuffle_idx = _mm256_set1_epi32(0x0D090501);
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri   = src + i;
     uint8_t* dptri    = dst + i;
@@ -170,9 +170,9 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epi32>(uint16_t* src, ui
     __m256i srcs_hi   = _mm256_unpackhi_epi16(src_sub_v, zero_v);
     __m256i srcs_lo   = _mm256_unpacklo_epi16(src_sub_v, zero_v);
 
-    __m256i val_hi = _mm256_mul_epi32(coeff_v, srcs_hi);
+    __m256i val_hi = _mm256_mullo_epi32(coeff_v, srcs_hi);
     __m256i hi     = _mm256_min_epi32(val_hi, uint8_max_v);
-    __m256i val_lo = _mm256_mul_epi32(coeff_v, srcs_lo);
+    __m256i val_lo = _mm256_mullo_epi32(coeff_v, srcs_lo);
     __m256i lo     = _mm256_min_epi32(val_lo, uint8_max_v);
 
     __m256i compress_hi = _mm256_shuffle_epi8(hi, shuffle_idx);
@@ -185,9 +185,9 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epi32>(uint16_t* src, ui
     srcs_hi   = _mm256_unpackhi_epi16(src_sub_v, zero_v);
     srcs_lo   = _mm256_unpacklo_epi16(src_sub_v, zero_v);
 
-    val_hi = _mm256_mul_epi32(coeff_v, srcs_hi);
+    val_hi = _mm256_mullo_epi32(coeff_v, srcs_hi);
     hi     = _mm256_max_epi32(_mm256_min_epi32(val_hi, uint8_max_v), zero_v);
-    val_lo = _mm256_mul_epi32(coeff_v, srcs_lo);
+    val_lo = _mm256_mullo_epi32(coeff_v, srcs_lo);
     lo     = _mm256_max_epi32(_mm256_min_epi32(val_lo, uint8_max_v), zero_v);
 
     compress_hi      = _mm256_shuffle_epi8(hi, shuffle_idx);
