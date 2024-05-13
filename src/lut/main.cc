@@ -82,6 +82,7 @@ auto main() -> int {
 
     // naive lut create
     std::ranges::fill(std::span(lut.lut_.get(), LUT_END), 0);
+    std::cout << "naive_lut ";
     start = std::chrono::high_resolution_clock::now();
     for (auto current_loop : std::views::iota(0, loop_count)) {
       lut.Create_Impl<LUT::Method::naive_lut>(lut_min, lut_max);
@@ -94,6 +95,7 @@ auto main() -> int {
 
     // naive lut convert
     std::ranges::fill(std::span(dptr, data_size), 0);
+    std::cout << "naive_lut ";
     start = std::chrono::high_resolution_clock::now();
     for (auto current_loop : std::views::iota(0, loop_count)) {
       lut.Convert_Impl<LUT::Method::naive_lut>(sptr, dptr, data_size);
@@ -107,6 +109,7 @@ auto main() -> int {
     if (supported_avx2) {
       // avx2 lut create
       std::ranges::fill(std::span(lut.lut_.get(), LUT_END), 0);
+      std::cout << "avx2_lut ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Create_Impl<LUT::Method::avx2_lut>(lut_min, lut_max);
@@ -119,6 +122,7 @@ auto main() -> int {
 
       // avx2 lut convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx2_lut ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx2_lut>(sptr, dptr, data_size);
@@ -133,6 +137,7 @@ auto main() -> int {
     if (supported_avx512f) {
       // avx512 lut convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512f_lut ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx512f_lut>(sptr, dptr, data_size);
@@ -146,6 +151,7 @@ auto main() -> int {
     if (supported_avx512vbmi) {
       // avx512 lut convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512vbmi_lut ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx512vbmi_lut>(sptr, dptr, data_size);
@@ -157,9 +163,9 @@ auto main() -> int {
                 << std::endl;
     }
 
-    std::cout << "naive calc" << std::endl;
     //      calc create
     std::ranges::fill(std::span(lut.lut_.get(), LUT_END), 0);
+    std::cout << "naive_calc ";
     start = std::chrono::high_resolution_clock::now();
     for (auto current_loop : std::views::iota(0, loop_count)) {
       lut.Create_Impl<LUT::Method::naive_calc>(lut_min, lut_max);
@@ -171,6 +177,7 @@ auto main() -> int {
 
     // naive calc convert
     std::ranges::fill(std::span(dptr, data_size), 0);
+    std::cout << "naive_calc ";
     start = std::chrono::high_resolution_clock::now();
     for (auto current_loop : std::views::iota(0, loop_count)) {
       lut.Convert_Impl<LUT::Method::naive_calc>(sptr, dptr, data_size);
@@ -184,6 +191,7 @@ auto main() -> int {
     if (supported_avx2) {
       // avx2 calc convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx2_calc ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx2_calc>(sptr, dptr, data_size);
@@ -196,9 +204,23 @@ auto main() -> int {
 
       // avx2 calc int weight convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx2_calc_int_weight_epu16 ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
-        lut.Convert_Impl<LUT::Method::avx2_calc_intweight>(sptr, dptr, data_size);
+        lut.Convert_Impl<LUT::Method::avx2_calc_intweight_epu16>(sptr, dptr, data_size);
+      }
+      end        = std::chrono::high_resolution_clock::now();
+      time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
+                               CalcDiff(dptr, rptr, data_size))
+                << std::endl;
+
+      // avx2 calc int weight convert
+      std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx2_calc_int_weight_epi32 ";
+      start = std::chrono::high_resolution_clock::now();
+      for (auto current_loop : std::views::iota(0, loop_count)) {
+        lut.Convert_Impl<LUT::Method::avx2_calc_intweight_epi32>(sptr, dptr, data_size);
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
@@ -210,6 +232,7 @@ auto main() -> int {
     if (supported_avx512f) {
       // avx512 calc convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512f_calc ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx512f_calc>(sptr, dptr, data_size);
@@ -223,6 +246,7 @@ auto main() -> int {
     if (supported_avx512vbmi) {
       // avx512 calc convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512vbmi ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
         lut.Convert_Impl<LUT::Method::avx512vbmi_calc>(sptr, dptr, data_size);
@@ -233,11 +257,25 @@ auto main() -> int {
                                CalcDiff(dptr, rptr, data_size))
                 << std::endl;
 
-      // avx512 calc int weight convert
+      // avx512 calc int weight epu16 convert
       std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512_vbmi_calc_intweight_epu16 ";
       start = std::chrono::high_resolution_clock::now();
       for (auto current_loop : std::views::iota(0, loop_count)) {
-        lut.Convert_Impl<LUT::Method::avx512vbmi_calc_intweight>(sptr, dptr, data_size);
+        lut.Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epu16>(sptr, dptr, data_size);
+      }
+      end        = std::chrono::high_resolution_clock::now();
+      time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
+                               CalcDiff(dptr, rptr, data_size))
+                << std::endl;
+
+      // avx512 calc int weight epi32 convert
+      std::ranges::fill(std::span(dptr, data_size), 0);
+      std::cout << "avx512vbmi_calc_intweigth_epi32 ";
+      start = std::chrono::high_resolution_clock::now();
+      for (auto current_loop : std::views::iota(0, loop_count)) {
+        lut.Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(sptr, dptr, data_size);
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
