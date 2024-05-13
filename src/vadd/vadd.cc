@@ -21,7 +21,8 @@ auto main() -> int {
   int32_t data_size = 4096;
 
   constexpr int32_t align_size = 512;
-  std::shared_ptr<float[]> data(new (std::align_val_t(align_size)) float[data_size * data_size]);
+  std::shared_ptr<float[]> data(
+      new (std::align_val_t(align_size)) float[data_size * data_size]);
   std::shared_ptr<float[]> result(new (std::align_val_t(align_size)) float[data_size]);
   float* sptr = data.get();
   float* dptr = result.get();
@@ -212,7 +213,7 @@ auto main() -> int {
         dptr[ii] = 0.0f;
       }
     }
-#pragma omp parallel for reduction(+:dptr[:data_size])
+#pragma omp parallel for reduction(+ : dptr[ : data_size])
     for (int32_t j = 0; j < data_size; j++) {
       float* sptrj = sptr + data_size * j;
 #pragma omp unroll
@@ -252,7 +253,8 @@ auto main() -> int {
                    std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
                        current_loop)
             << std::endl;
-  std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;/*}}}*/
+  std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum())
+            << std::endl; /*}}}*/
 
   std::cout << "omp iji loop" << std::endl;
   current_loop = fast_loop;
@@ -349,7 +351,7 @@ auto main() -> int {
     for (int32_t i = 0; i < data_size; i += 128) {
       float* dptri = dptr + i;
 #pragma omp unroll
-      for (int32_t ii = 0; ii <128; ii++) {
+      for (int32_t ii = 0; ii < 128; ii++) {
         dptri[ii] = 0.0f;
       }
 #pragma omp unroll
@@ -443,9 +445,9 @@ auto main() -> int {
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++, sptri += data_size) {
         // float* sptrij = sptri + data_size * j;
-        dptri_v       = _mm512_add_ps(dptri_v, _mm512_load_ps(sptri));
-        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size * j));
-        // dptri_v = _mm512_add_ps(dptri_v, sptr_v);
+        dptri_v = _mm512_add_ps(dptri_v, _mm512_load_ps(sptri));
+        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size *
+        // j)); dptri_v = _mm512_add_ps(dptri_v, sptr_v);
       }
       // _mm512_storeu_ps(dptri, dptri_v);
       _mm512_stream_ps(dptri, dptri_v);
@@ -465,18 +467,18 @@ auto main() -> int {
   for (auto measure_i : std::views::iota(0, current_loop)) {
 #pragma omp parallel for
     for (int32_t i = 0; i < data_size; i += 32) {
-      float* dptri   = dptr + i;
-      float* sptri   = sptr + i;
+      float* dptri    = dptr + i;
+      float* sptri    = sptr + i;
       __m512 dptri_v1 = _mm512_setzero_ps();
       __m512 dptri_v2 = _mm512_setzero_ps();
       // __m512 sptr_v = _mm512_loadu_ps(sptri);
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++, sptri += data_size) {
         // float* sptrij = sptri + data_size * j;
-        dptri_v1       = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
-        dptri_v2       = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
-        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size * j));
-        // dptri_v = _mm512_add_ps(dptri_v, sptr_v);
+        dptri_v1 = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
+        dptri_v2 = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
+        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size *
+        // j)); dptri_v = _mm512_add_ps(dptri_v, sptr_v);
       }
       // _mm512_storeu_ps(dptri, dptri_v);
       _mm512_stream_ps(dptri, dptri_v1);
@@ -497,8 +499,8 @@ auto main() -> int {
   for (auto measure_i : std::views::iota(0, current_loop)) {
 #pragma omp parallel for
     for (int32_t i = 0; i < data_size; i += 64) {
-      float* dptri   = dptr + i;
-      float* sptri   = sptr + i;
+      float* dptri    = dptr + i;
+      float* sptri    = sptr + i;
       __m512 dptri_v1 = _mm512_setzero_ps();
       __m512 dptri_v2 = _mm512_setzero_ps();
       __m512 dptri_v3 = _mm512_setzero_ps();
@@ -507,12 +509,12 @@ auto main() -> int {
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++, sptri += data_size) {
         // float* sptrij = sptri + data_size * j;
-        dptri_v1       = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
-        dptri_v2       = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
-        dptri_v3       = _mm512_add_ps(dptri_v3, _mm512_load_ps(sptri + 32));
-        dptri_v4       = _mm512_add_ps(dptri_v4, _mm512_load_ps(sptri + 48));
-        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size * j));
-        // dptri_v = _mm512_add_ps(dptri_v, sptr_v);
+        dptri_v1 = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
+        dptri_v2 = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
+        dptri_v3 = _mm512_add_ps(dptri_v3, _mm512_load_ps(sptri + 32));
+        dptri_v4 = _mm512_add_ps(dptri_v4, _mm512_load_ps(sptri + 48));
+        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size *
+        // j)); dptri_v = _mm512_add_ps(dptri_v, sptr_v);
       }
       // _mm512_storeu_ps(dptri, dptri_v);
       _mm512_stream_ps(dptri, dptri_v1);
@@ -535,8 +537,8 @@ auto main() -> int {
   for (auto measure_i : std::views::iota(0, current_loop)) {
 #pragma omp parallel for
     for (int32_t i = 0; i < data_size; i += 128) {
-      float* dptri   = dptr + i;
-      float* sptri   = sptr + i;
+      float* dptri    = dptr + i;
+      float* sptri    = sptr + i;
       __m512 dptri_v1 = _mm512_setzero_ps();
       __m512 dptri_v2 = _mm512_setzero_ps();
       __m512 dptri_v3 = _mm512_setzero_ps();
@@ -549,16 +551,16 @@ auto main() -> int {
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++, sptri += data_size) {
         // float* sptrij = sptri + data_size * j;
-        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size * j));
-        // dptri_v = _mm512_add_ps(dptri_v, sptr_v);
-        dptri_v1       = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
-        dptri_v2       = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
-        dptri_v3       = _mm512_add_ps(dptri_v3, _mm512_load_ps(sptri + 32));
-        dptri_v4       = _mm512_add_ps(dptri_v4, _mm512_load_ps(sptri + 48));
-        dptri_v5       = _mm512_add_ps(dptri_v5, _mm512_load_ps(sptri + 64));
-        dptri_v6       = _mm512_add_ps(dptri_v6, _mm512_load_ps(sptri + 80));
-        dptri_v7       = _mm512_add_ps(dptri_v7, _mm512_load_ps(sptri + 96));
-        dptri_v8       = _mm512_add_ps(dptri_v8, _mm512_load_ps(sptri + 112));
+        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size *
+        // j)); dptri_v = _mm512_add_ps(dptri_v, sptr_v);
+        dptri_v1 = _mm512_add_ps(dptri_v1, _mm512_load_ps(sptri));
+        dptri_v2 = _mm512_add_ps(dptri_v2, _mm512_load_ps(sptri + 16));
+        dptri_v3 = _mm512_add_ps(dptri_v3, _mm512_load_ps(sptri + 32));
+        dptri_v4 = _mm512_add_ps(dptri_v4, _mm512_load_ps(sptri + 48));
+        dptri_v5 = _mm512_add_ps(dptri_v5, _mm512_load_ps(sptri + 64));
+        dptri_v6 = _mm512_add_ps(dptri_v6, _mm512_load_ps(sptri + 80));
+        dptri_v7 = _mm512_add_ps(dptri_v7, _mm512_load_ps(sptri + 96));
+        dptri_v8 = _mm512_add_ps(dptri_v8, _mm512_load_ps(sptri + 112));
       }
       // _mm512_storeu_ps(dptri, dptri_v);
       _mm512_stream_ps(dptri, dptri_v1);
@@ -585,8 +587,8 @@ auto main() -> int {
   for (auto measure_i : std::views::iota(0, current_loop)) {
 #pragma omp parallel for
     for (int32_t i = 0; i < data_size; i += 128) {
-      float* dptri   = dptr + i;
-      float* sptri   = sptr + i;
+      float* dptri    = dptr + i;
+      float* sptri    = sptr + i;
       __m512 dptri_v1 = _mm512_setzero_ps();
       __m512 dptri_v2 = _mm512_setzero_ps();
       __m512 dptri_v3 = _mm512_setzero_ps();
@@ -599,16 +601,16 @@ auto main() -> int {
 #pragma omp unroll
       for (int32_t j = 0; j < data_size; j++, sptri += data_size) {
         // float* sptrij = sptri + data_size * j;
-        dptri_v1       = _mm512_add_ps(dptri_v1, (__m512)_mm512_load_si512(sptri));
-        dptri_v2       = _mm512_add_ps(dptri_v2, (__m512)_mm512_load_si512(sptri + 16));
-        dptri_v3       = _mm512_add_ps(dptri_v3, (__m512)_mm512_load_si512(sptri + 32));
-        dptri_v4       = _mm512_add_ps(dptri_v4, (__m512)_mm512_load_si512(sptri + 48));
-        dptri_v5       = _mm512_add_ps(dptri_v5, (__m512)_mm512_load_si512(sptri + 64));
-        dptri_v6       = _mm512_add_ps(dptri_v6, (__m512)_mm512_load_si512(sptri + 80));
-        dptri_v7       = _mm512_add_ps(dptri_v7, (__m512)_mm512_load_si512(sptri + 96));
-        dptri_v8       = _mm512_add_ps(dptri_v8, (__m512)_mm512_load_si512(sptri + 112));
-        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size * j));
-        // dptri_v = _mm512_add_ps(dptri_v, sptr_v);
+        dptri_v1 = _mm512_add_ps(dptri_v1, (__m512)_mm512_load_si512(sptri));
+        dptri_v2 = _mm512_add_ps(dptri_v2, (__m512)_mm512_load_si512(sptri + 16));
+        dptri_v3 = _mm512_add_ps(dptri_v3, (__m512)_mm512_load_si512(sptri + 32));
+        dptri_v4 = _mm512_add_ps(dptri_v4, (__m512)_mm512_load_si512(sptri + 48));
+        dptri_v5 = _mm512_add_ps(dptri_v5, (__m512)_mm512_load_si512(sptri + 64));
+        dptri_v6 = _mm512_add_ps(dptri_v6, (__m512)_mm512_load_si512(sptri + 80));
+        dptri_v7 = _mm512_add_ps(dptri_v7, (__m512)_mm512_load_si512(sptri + 96));
+        dptri_v8 = _mm512_add_ps(dptri_v8, (__m512)_mm512_load_si512(sptri + 112));
+        // dptri_v = _mm512_add_ps(dptri_v, (__m512)_mm512_stream_load_si512(sptri + data_size *
+        // j)); dptri_v = _mm512_add_ps(dptri_v, sptr_v);
       }
       // _mm512_storeu_ps(dptri, dptri_v);
       _mm512_stream_ps(dptri, dptri_v1);

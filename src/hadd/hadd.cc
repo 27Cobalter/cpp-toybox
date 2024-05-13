@@ -6,15 +6,16 @@
 #include <ranges>
 #include <vector>
 
-#define measure_start()  \
-    { \
+#define measure_start()                                     \
+  {                                                         \
     auto start = std::chrono::high_resolution_clock::now(); \
-    for(auto measure_i = 0; measure_i < measure_count; measure_i++) {
-# define measure_end() \
-    } \
-    auto end = std::chrono::high_resolution_clock::now(); \
-    std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl; \
-    }
+    for (auto measure_i = 0; measure_i < measure_count; measure_i++) {
+#define measure_end()                                                                     \
+  }                                                                                       \
+  auto end = std::chrono::high_resolution_clock::now();                                   \
+  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() \
+            << std::endl;                                                                 \
+  }
 
 constexpr int32_t measure_count = 1000;
 
@@ -25,7 +26,7 @@ auto main() -> int {
   std::cout << "range for" << std::endl;
   measure_start();
   sum = 0;
-  for(auto elem : vec){
+  for (auto elem : vec) {
     sum += elem;
   }
   measure_end();
@@ -34,7 +35,7 @@ auto main() -> int {
   std::cout << "index for" << std::endl;
   measure_start();
   sum = 0;
-  for(int32_t i = 0; i < vec.size(); i++){
+  for (int32_t i = 0; i < vec.size(); i++) {
     sum += vec[i];
   }
   measure_end();
@@ -43,7 +44,7 @@ auto main() -> int {
   std::cout << "iota for" << std::endl;
   measure_start();
   sum = 0;
-  for(auto i : std::views::iota(0, measure_count)){
+  for (auto i : std::views::iota(0, measure_count)) {
     sum += vec[i];
   }
   measure_end();

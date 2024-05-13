@@ -20,7 +20,7 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
   for (auto i : std::views::iota(0, data_size)) {
     diff += (t[i] - u[i]) * (t[i] - u[i]);
     if (std::abs(static_cast<float>(t[i] - u[i])) > 0.1) {
-        // std::cout << std::format("(t[{}], u[{}]) = ({}, {})", i, i, t[i], u[i]) << std::endl;
+      // std::cout << std::format("(t[{}], u[{}]) = ({}, {})", i, i, t[i], u[i]) << std::endl;
     }
   }
   return diff / data_size;
@@ -35,7 +35,7 @@ auto main() -> int {
   std::valarray<int32_t> width_samples{1024};
 #endif
 
-  using IIIS                = InstructionInfo::InstructionSet;
+  using IIIS                      = InstructionInfo::InstructionSet;
   const bool supported_avx2       = InstructionInfo::IsSupported(IIIS::AVX2);
   const bool supported_avx512f    = InstructionInfo::IsSupported(IIIS::AVX512F);
   const bool supported_avx512vbmi = InstructionInfo::IsSupported(IIIS::AVX512_VBMI);
@@ -49,9 +49,12 @@ auto main() -> int {
   std::shared_ptr<uint8_t[]> dst(new uint8_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> ref(new uint8_t[width_samples.max() * width_samples.max()]);
 #else
-  std::shared_ptr<uint16_t[]> src(new(std::align_val_t(64)) uint16_t[width_samples.max() * width_samples.max()]);
-  std::shared_ptr<uint8_t[]> dst(new(std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
-  std::shared_ptr<uint8_t[]> ref(new(std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint16_t[]> src(new (std::align_val_t(64))
+                                      uint16_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> dst(new (std::align_val_t(64))
+                                     uint8_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> ref(new (std::align_val_t(64))
+                                     uint8_t[width_samples.max() * width_samples.max()]);
 #endif
 
   // constexpr int32_t LUT_END = static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) + 1;
@@ -71,7 +74,7 @@ auto main() -> int {
     constexpr int32_t lut_min = 0xF00;
     constexpr int32_t lut_max = 0xFFF;
 #endif
-    const int32_t data_size   = width * width;
+    const int32_t data_size = width * width;
 
     // create source
     for (auto i : std::views::iota(0, data_size)) {
@@ -81,7 +84,8 @@ auto main() -> int {
     // create reference
     for (auto i : std::views::iota(0, LUT_END)) {
       ref_lut[i] = std::clamp(
-          static_cast<int32_t>(std::round(255.0 / (lut_max - lut_min) * (i - lut_min) + 0.5)), 0, 255);
+          static_cast<int32_t>(std::round(255.0 / (lut_max - lut_min) * (i - lut_min) + 0.5)),
+          0, 255);
     }
     std::cout << std::endl;
     for (auto i : std::views::iota(0, data_size)) {
@@ -316,7 +320,6 @@ auto main() -> int {
     std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
                              CalcDiff(dptr, rptr, data_size))
               << std::endl;
-
   }
 
   return 0;

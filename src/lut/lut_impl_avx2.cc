@@ -69,8 +69,8 @@ void LUT::Convert_Impl<LUT::Method::avx2_lut>(uint16_t* src, uint8_t* dst, int32
   }
 }
 
-// uint16_t入力をunpackでuint32_tベクトルx2にわけ，係数乗算はfloatで計算 uint32_tへ変換しuint8_tにパックする
-// 一番 精度が高い
+// uint16_t入力をunpackでuint32_tベクトルx2にわけ，係数乗算はfloatで計算
+// uint32_tへ変換しuint8_tにパックする 一番 精度が高い
 template <>
 void LUT::Convert_Impl<LUT::Method::avx2_calc>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   constexpr int32_t step      = 256 / 8 / sizeof(uint8_t);
@@ -122,31 +122,34 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc>(uint16_t* src, uint8_t* dst, int3
 
 // 係数を整数として扱う．uint16_tのまま計算を行い，uint8_tへパックする
 // [要テスト] minmax取る順番を早くしているので発生しない予定だが，桁溢れがこわい
-// 
+//
 template <>
 void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epu16>(uint16_t* src, uint8_t* dst,
                                                                int32_t data_size) {
   constexpr int32_t step      = 256 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 
-  __m256i coeff_v     = _mm256_set1_epi16(std::ceil(coeff_ * (0x100)));
-  __m256i lut_min_v   = _mm256_set1_epi16(lut_min_);
+  __m256i coeff_v               = _mm256_set1_epi16(std::ceil(coeff_ * (0x100)));
+  __m256i lut_min_v             = _mm256_set1_epi16(lut_min_);
   __m256i uint8_max_div_coeff_v = _mm256_set1_epi16((255.0 / coeff_));
-  __m256i zero_v      = _mm256_setzero_si256();
+  __m256i zero_v                = _mm256_setzero_si256();
 
   const __m256i shuffle_idx = _mm256_set1_epi64x(0x0E0C0A0806040200);
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri   = src + i;
     uint8_t* dptri    = dst + i;
-    __m256i src_sub_v = _mm256_min_epu16(_mm256_subs_epu16(_mm256_loadu_epi16(sptri), lut_min_v), uint8_max_div_coeff_v);
-    __m256i dst_v1       = _mm256_srli_epi16(_mm256_mullo_epi16(src_sub_v, coeff_v), 8);
+    __m256i src_sub_v = _mm256_min_epu16(
+        _mm256_subs_epu16(_mm256_loadu_epi16(sptri), lut_min_v), uint8_max_div_coeff_v);
+    __m256i dst_v1 = _mm256_srli_epi16(_mm256_mullo_epi16(src_sub_v, coeff_v), 8);
 
     dst_v1 = _mm256_shuffle_epi8(dst_v1, shuffle_idx);
     dst_v1 = _mm256_permute4x64_epi64(dst_v1, _MM_SHUFFLE(2, 1, 3, 0));
 
     // half
-    src_sub_v      = _mm256_min_epu16(_mm256_subs_epu16(_mm256_loadu_epi16(sptri + half_step), lut_min_v), uint8_max_div_coeff_v);
-    __m256i dst_v2       = _mm256_srli_epi16(_mm256_mullo_epi16(src_sub_v, coeff_v), 8);
+    src_sub_v =
+        _mm256_min_epu16(_mm256_subs_epu16(_mm256_loadu_epi16(sptri + half_step), lut_min_v),
+                         uint8_max_div_coeff_v);
+    __m256i dst_v2 = _mm256_srli_epi16(_mm256_mullo_epi16(src_sub_v, coeff_v), 8);
 
     dst_v2 = _mm256_shuffle_epi8(dst_v2, shuffle_idx);
     dst_v2 = _mm256_permute4x64_epi64(dst_v2, _MM_SHUFFLE(2, 1, 3, 0));
@@ -207,4 +210,3 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epi32>(uint16_t* src, ui
     _mm256_storeu_epi32(dptri, dst_lo_v);
   }
 }
-

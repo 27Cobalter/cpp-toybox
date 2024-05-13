@@ -2,7 +2,6 @@
 
 #include <immintrin.h>
 
-
 template <>
 void LUT::Convert_Impl<LUT::Method::avx512f_lut>(uint16_t* src, uint8_t* dst,
                                                  int32_t data_size) {
@@ -71,4 +70,3 @@ void LUT::Convert_Impl<LUT::Method::avx512f_calc>(uint16_t* src, uint8_t* dst,
     _mm256_storeu_epi8(dptri + half_step, dst_v);
   }
 }
-
