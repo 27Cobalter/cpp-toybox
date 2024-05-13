@@ -122,6 +122,7 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc>(uint16_t* src, uint8_t* dst, int3
 
 // 係数を整数として扱う．uint16_tのまま計算を行い，uint8_tへパックする
 // [要テスト] minmax取る順番を早くしているので発生しない予定だが，桁溢れがこわい
+// 
 template <>
 void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epu16>(uint16_t* src, uint8_t* dst,
                                                                int32_t data_size) {
