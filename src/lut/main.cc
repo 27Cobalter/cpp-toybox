@@ -32,7 +32,7 @@ auto main() -> int {
   std::valarray<int32_t> width_samples{64};
 #else
   constexpr int32_t loop_count = 1000;
-  std::valarray<int32_t> width_samples{1024};
+  std::valarray<int32_t> width_samples{4096};
 #endif
 
   using IIIS                      = InstructionInfo::InstructionSet;
@@ -71,8 +71,8 @@ auto main() -> int {
     constexpr int32_t lut_min = 0x100;
     constexpr int32_t lut_max = 0x1E3;
 #else
-    constexpr int32_t lut_min = 0xF00;
-    constexpr int32_t lut_max = 0xFFF;
+    constexpr int32_t lut_min = 0x000;
+    constexpr int32_t lut_max = 0x0FF;
 #endif
     const int32_t data_size = width * width;
 

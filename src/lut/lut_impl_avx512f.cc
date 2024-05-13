@@ -1,4 +1,5 @@
 #include "lut.h"
+#include <omp.h>
 
 #include <immintrin.h>
 

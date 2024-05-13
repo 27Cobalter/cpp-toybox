@@ -1,6 +1,8 @@
 #include "lut.h"
 
 #include <cassert>
+#include <cmath>
+
 #include <immintrin.h>
 
 template <>
@@ -112,13 +114,10 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epu16>(uint16_t* s
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 
-  const __m512i coeff_v = _mm512_set1_epi16(coeff_ * (0xFFFF));
-  // std::cout << coeff_ << " " << static_cast<uint16_t>(coeff_ * (1 << coeff_bits)) <<
-  // std::endl;
-  const __m512i lut_min_v         = _mm512_set1_epi16(lut_min_);
-  const __m512i uint8_max_v       = _mm512_set1_epi16(255);
-  const __m512i zero_v            = _mm512_setzero_si512();
-  const uint8_t permute_index[64] = {
+  const __m512i coeff_v               = _mm512_set1_epi16(std::ceil(coeff_ * (0x100)));
+  const __m512i lut_min_v             = _mm512_set1_epi16(lut_min_);
+  const __m512i uint8_max_div_coeff_v = _mm512_set1_epi16(255.0 / coeff_);
+  const uint8_t permute_index[64]     = {
       0,         2,         4,         6,         8,         10,        12,        14,
       16,        18,        20,        22,        24,        26,        28,        30,
       32,        34,        36,        38,        40,        42,        44,        46,
@@ -141,14 +140,15 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epu16>(uint16_t* s
 
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri   = src + i;
-    __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
-    __m512i val       = _mm512_mulhi_epu16(src_sub_v, coeff_v);
-    __m512i dst_v1    = _mm512_min_epu16(val, uint8_max_v);
+    __m512i src_sub_v = _mm512_min_epu16(
+        _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v), uint8_max_div_coeff_v);
+    __m512i dst_v1 = _mm512_srli_epi16(_mm512_mullo_epi16(src_sub_v, coeff_v), 8);
 
     // half
-    src_sub_v      = _mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v);
-    val            = _mm512_mulhi_epu16(src_sub_v, coeff_v);
-    __m512i dst_v2 = _mm512_min_epu16(val, uint8_max_v);
+    src_sub_v =
+        _mm512_min_epu16(_mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v),
+                         uint8_max_div_coeff_v);
+    __m512i dst_v2 = _mm512_srli_epi16(_mm512_mullo_epi16(src_sub_v, coeff_v), 8);
 
     __m512i dst_v = _mm512_permutex2var_epi8(dst_v1, permute_index_v, dst_v2);
     _mm512_storeu_epi32(dst + i, dst_v);
@@ -193,9 +193,9 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
     __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
     __m512i srcs_hi   = _mm512_unpackhi_epi16(src_sub_v, zero_v);
     __m512i srcs_lo   = _mm512_unpacklo_epi16(src_sub_v, zero_v);
-    __m512i val_hi    = _mm512_mul_epu32(coeff_v, srcs_hi);
+    __m512i val_hi    = _mm512_mullo_epi32(coeff_v, srcs_hi);
     __m512i hi        = _mm512_min_epi32(val_hi, uint8_max_v);
-    __m512i val_lo    = _mm512_mul_epu32(coeff_v, srcs_lo);
+    __m512i val_lo    = _mm512_mullo_epi32(coeff_v, srcs_lo);
     __m512i lo        = _mm512_min_epi32(val_lo, uint8_max_v);
 
     __m512i dst_v1 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
@@ -203,9 +203,9 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
     src_sub_v      = _mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v);
     srcs_hi        = _mm512_unpackhi_epi16(src_sub_v, zero_v);
     srcs_lo        = _mm512_unpacklo_epi16(src_sub_v, zero_v);
-    val_hi         = _mm512_mul_epu32(coeff_v, srcs_hi);
+    val_hi         = _mm512_mullo_epi32(coeff_v, srcs_hi);
     hi             = _mm512_min_epi32(val_hi, uint8_max_v);
-    val_lo         = _mm512_mul_epu32(coeff_v, srcs_lo);
+    val_lo         = _mm512_mullo_epi32(coeff_v, srcs_lo);
     lo             = _mm512_min_epi32(val_lo, uint8_max_v);
     __m512i dst_v2 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
 

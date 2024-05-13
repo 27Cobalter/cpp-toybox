@@ -122,7 +122,11 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc>(uint16_t* src, uint8_t* dst, int3
 
 // 係数を整数として扱う．uint16_tのまま計算を行い，uint8_tへパックする
 // [要テスト] minmax取る順番を早くしているので発生しない予定だが，桁溢れがこわい
-//
+// 式変形
+//      dst[i] = clamp(coeff_ * (src[i] - lut_min), 0, 255)
+//   -> dst[i] = min(max(coeff * (src[i] - lut_min), 0), 255)
+//   -> dst[i] = coeff_ * (min(max(src[i] - lut_min), 0 / coeff), 255 / coeff)
+//   -> dst[i] = (coeff_ * 256) * (min(max(src[i] - lut_min), 0), 255 / coeff) / 256
 template <>
 void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epu16>(uint16_t* src, uint8_t* dst,
                                                                int32_t data_size) {
@@ -132,7 +136,6 @@ void LUT::Convert_Impl<LUT::Method::avx2_calc_intweight_epu16>(uint16_t* src, ui
   __m256i coeff_v               = _mm256_set1_epi16(std::ceil(coeff_ * (0x100)));
   __m256i lut_min_v             = _mm256_set1_epi16(lut_min_);
   __m256i uint8_max_div_coeff_v = _mm256_set1_epi16((255.0 / coeff_));
-  __m256i zero_v                = _mm256_setzero_si256();
 
   const __m256i shuffle_idx = _mm256_set1_epi64x(0x0E0C0A0806040200);
   for (int i = 0; i < data_size; i += step) {
