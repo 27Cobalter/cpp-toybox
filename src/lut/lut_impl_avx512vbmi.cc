@@ -159,7 +159,7 @@ template <> // requires AVX-512 VBMI: Cannon Lake or Tager Lake later or Zen4 or
 void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* src,
                                                                      uint8_t* dst,
                                                                      int32_t data_size) {
-  assert(false);
+  // assert(false);
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 
@@ -168,14 +168,14 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
   const __m512i uint8_max_v       = _mm512_set1_epi32(255 * 256);
   const __m512i zero_v            = _mm512_setzero_si512();
   const uint8_t permute_index[64] = {
-      1,         5,         9,         13,        17,        21,        25,        29,
-      33,        37,        41,        45,        49,        53,        57,        61,
-      1,         5,         9,         13,        17,        21,        25,        29,
-      33,        37,        41,        45,        49,        53,        57,        61,
-      0x40 | 1,  0x40 | 5,  0x40 | 9,  0x40 | 13, 0x40 | 17, 0x40 | 21, 0x40 | 25, 0x40 | 29,
-      0x40 | 33, 0x40 | 37, 0x40 | 41, 0x40 | 45, 0x40 | 49, 0x40 | 53, 0x40 | 57, 0x40 | 61,
-      0x40 | 1,  0x40 | 5,  0x40 | 9,  0x40 | 13, 0x40 | 17, 0x40 | 21, 0x40 | 25, 0x40 | 29,
-      0x40 | 33, 0x40 | 37, 0x40 | 41, 0x40 | 45, 0x40 | 49, 0x40 | 53, 0x40 | 57, 0x40 | 61};
+      1,  5,  9,  13, 0x40 | 1,  0x40 | 5,  0x40 | 9,  0x40 | 13,
+      17, 21, 25, 29, 0x40 | 17, 0x40 | 21, 0x40 | 25, 0x40 | 29,
+      33, 37, 41, 45, 0x40 | 33, 0x40 | 37, 0x40 | 41, 0x40 | 45,
+      49, 53, 57, 61, 0x40 | 49, 0x40 | 53, 0x40 | 57, 0x40 | 61,
+      1,  5,  9,  13, 0x40 | 1,  0x40 | 5,  0x40 | 9,  0x40 | 13,
+      17, 21, 25, 29, 0x40 | 17, 0x40 | 21, 0x40 | 25, 0x40 | 29,
+      33, 37, 41, 45, 0x40 | 33, 0x40 | 37, 0x40 | 41, 0x40 | 45,
+      49, 53, 57, 61, 0x40 | 49, 0x40 | 53, 0x40 | 57, 0x40 | 61};
   const __m512i permute_index_v = _mm512_loadu_si512(permute_index);
   // setr_epi8 not exists
   // const __m512i permute_index_v = _mm512_set_epi8(

@@ -9,7 +9,7 @@ void LUT::Create_Impl<LUT::Method::avx2_lut>(int32_t lut_min, int32_t lut_max) {
   constexpr int32_t step = 256 / 8 / sizeof(uint32_t);
   uint32_t* lptr         = lut_.get();
 
-  const float coeff = 255.0 / (lut_max - lut_min);
+  const float coeff = 255.0 / (lut_max - lut_min + 1);
 
   const __m256 index_v = _mm256_setr_ps(0, 1, 2, 3, 4, 5, 6, 7);
 
