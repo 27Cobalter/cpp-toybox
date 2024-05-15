@@ -1,4 +1,5 @@
 #include "lut.h"
+#include <iostream>
 
 #include <cassert>
 #include <cmath>
@@ -188,7 +189,9 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
   //     28 | 0x40, 24 | 0x40, 20 | 0x40, 16 | 0x40, 28, 24, 20, 16,
   //     12 | 0x40,  8 | 0x40,  4 | 0x40,  0 | 0x40, 12, 8, 4, 0);
 
-  for (int i = 0; i < data_size; i += step) {
+  const int32_t loop_end = data_size - step + 1;
+  int i = 0;
+  for (; i < loop_end; i += step) {
     uint16_t* sptri   = src + i;
     __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
     __m512i srcs_hi   = _mm512_unpackhi_epi16(src_sub_v, zero_v);
@@ -210,5 +213,9 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
     __m512i dst_v2 = _mm512_permutex2var_epi8(lo, permute_index_v, hi);
 
     _mm512_storeu_epi8(dst + i, _mm512_mask_blend_epi32(0b1111111100000000, dst_v1, dst_v2));
+  }
+  for(; i < data_size; i++){
+    // naive
+    std::cout << "naive" << std::endl;
   }
 }
