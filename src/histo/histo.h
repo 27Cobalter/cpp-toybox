@@ -9,7 +9,11 @@ public:
   std::shared_ptr<int32_t[]> histo_ptr_ = nullptr;
   std::span<int32_t> histo_;
 
-  enum class Method { Naive, AVX512VPOPCNTDQ };
+  enum class Method {
+    Naive,
+    AVX512VPOPCNTDQ, 
+    AVX512VPOPCNTDQ_Order, 
+  };
 
 public:
   template <Method m>

@@ -12,6 +12,8 @@
 
 #include <histo.h>
 
+#include <opencv2/opencv.hpp>
+
 template <typename T, typename U>
   requires std::convertible_to<T, double> && std::convertible_to<U, double>
 double CalcMse(std::span<T> t, std::span<U> u) {
@@ -52,8 +54,14 @@ auto main() -> int {
     const int32_t data_size = resolution * resolution;
     std::span<uint16_t> src(src_ptr.get(), data_size);
 
+    cv::Mat mat_src(cv::Size(resolution, resolution), CV_16UC1);
+    uint16_t* msptr = mat_src.ptr<uint16_t>(0, 0);
+
     for (auto& elem : src) {
       elem = static_cast<int32_t>(norm_dist(engine)) & RANGE_MAX;
+    }
+    for (int32_t i = 0; i < data_size; i++) {
+      msptr[i] = src[i];
     }
     std::ranges::fill(ref, 0);
     for (auto& elem : src) {
@@ -78,6 +86,28 @@ auto main() -> int {
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
               << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    for (auto loop_i : std::views::iota(0, LOOP_COUNT)) {
+      myhisto.Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(src.data(), src.size());
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+              << std::endl;
+    std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
+
+    // cv::MatND hist;
+    // float hranges[] = {0, RANGE_SIZE};
+    // const float* ranges[] = { hranges};
+    // int histSize[] = {RANGE_SIZE};
+    // start = std::chrono::high_resolution_clock::now();
+    // for (auto loop_i : std::views::iota(0, LOOP_COUNT)) {
+    //   cv::calcHist(&mat_src, 1, {0}, cv::Mat(), hist, 1, histSize, ranges, true, false);
+    // }
+    // end = std::chrono::high_resolution_clock::now();
+    // std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+    //           << std::endl;
+    // std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
   }
 
   return 0;
