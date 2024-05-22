@@ -8,11 +8,14 @@ class MyHisto {
 public:
   std::shared_ptr<int32_t[]> histo_ptr_ = nullptr;
   std::span<int32_t> histo_;
+  std::span<int32_t> histo_all_;
+  const int32_t parallel_size_ = 2;
 
   enum class Method {
     Naive,
-    AVX512VPOPCNTDQ, 
-    AVX512VPOPCNTDQ_Order, 
+    Naive_MultiSubloop,
+    AVX512VPOPCNTDQ,
+    AVX512VPOPCNTDQ_Order,
   };
 
 public:

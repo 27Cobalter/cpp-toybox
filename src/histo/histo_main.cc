@@ -37,6 +37,7 @@ auto main() -> int {
   constexpr int32_t LOOP_COUNT = 1000;
 
   std::valarray<int32_t> resolution_list = {1024, 2048};
+  // std::valarray<int32_t> resolution_list = {8192};
 
   decltype(std::chrono::high_resolution_clock::now()) start, end;
   std::random_device seed;
@@ -95,6 +96,19 @@ auto main() -> int {
     std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
               << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    for (auto loop_i : std::views::iota(0, LOOP_COUNT)) {
+      myhisto.Create_Impl<MyHisto::Method::Naive_MultiSubloop>(src.data(), src.size());
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+              << std::endl;
+    std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
+
+    // for (int i = 0; i < RANGE_SIZE; i++) {
+    //   std::cout << std::format("{:3}: {:6}, {:6}", i, ref[i], myhisto.histo_[i]) << std::endl;
+    // }
 
     // cv::MatND hist;
     // float hranges[] = {0, RANGE_SIZE};
