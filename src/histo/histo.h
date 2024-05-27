@@ -13,6 +13,7 @@ public:
 
   enum class Method {
     Naive,
+    NaiveUnroll,
     Naive_MultiSubloop,
     AVX512VPOPCNTDQ,
     AVX512VPOPCNTDQ_Order,

@@ -81,6 +81,15 @@ auto main() -> int {
 
     start = std::chrono::high_resolution_clock::now();
     for (auto loop_i : std::views::iota(0, LOOP_COUNT)) {
+      myhisto.Create_Impl<MyHisto::Method::NaiveUnroll>(src.data(), src.size());
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+              << std::endl;
+    std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
+
+    start = std::chrono::high_resolution_clock::now();
+    for (auto loop_i : std::views::iota(0, LOOP_COUNT)) {
       myhisto.Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();

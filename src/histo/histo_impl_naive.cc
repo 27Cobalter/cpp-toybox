@@ -8,14 +8,34 @@
 template <>
 void MyHisto::Create_Impl<MyHisto::Method::Naive>(uint16_t* source, int32_t data_size) {
   std::ranges::fill(histo_, 0);
-  for (auto i : std::views::iota(0, data_size)) {
+#pragma unroll
+  for(int32_t i = 0; ; i++){
+    if (i >=  data_size) [[likely]] {
+      break;
+    }
     histo_[source[i]]++;
   }
 }
 
 template <>
+void MyHisto::Create_Impl<MyHisto::Method::NaiveUnroll>(uint16_t* source, int32_t data_size) {
+  std::ranges::fill(histo_, 0);
+#pragma unroll
+  for(int32_t i = 0; i < data_size; i +=  8){
+    histo_[source[i]]++;
+    histo_[source[i+1]]++;
+    histo_[source[i+2]]++;
+    histo_[source[i+3]]++;
+    histo_[source[i+4]]++;
+    histo_[source[i+5]]++;
+    histo_[source[i+6]]++;
+    histo_[source[i+7]]++;
+  }
+}
+
+template <>
 void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source,
-                                                            int32_t data_size) {
+    int32_t data_size) {
   std::ranges::fill(histo_, 0);
 
   constexpr int32_t step         = 512 / 8 / sizeof(uint16_t);
@@ -50,8 +70,9 @@ void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source,
 
 template <>
 void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(uint16_t* source,
-                                                                  int32_t data_size) {
+    int32_t data_size) {
   std::ranges::fill(histo_, 0);
+  __m512i src_v = _mm512_stream_load_si512(source);
 
   constexpr int32_t step         = 512 / 8 / sizeof(uint16_t);
   constexpr int32_t half_step    = step >> 1;
@@ -65,58 +86,64 @@ void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(uint16_t* sour
   const int32_t loop_end = data_size - step + 1;
   int32_t i              = 0;
 
-  for (; i < loop_end; i += step) {
-    __m512i src_v       = _mm512_loadu_si512(source + i);
-    __m512i src_lo      = _mm512_unpacklo_epi16(src_v, zero_v);
-    __m512i src_hi      = _mm512_unpackhi_epi16(src_v, zero_v);
-    __m512i conflict_lo = _mm512_conflict_epi32(src_lo);
-    __m512i conflict_hi = _mm512_conflict_epi32(src_hi);
-    conflict_lo         = _mm512_popcnt_epi32(conflict_lo);
-    conflict_hi         = _mm512_popcnt_epi32(conflict_hi);
-    conflict_lo         = _mm512_add_epi32(conflict_lo, one_v);
-    conflict_hi         = _mm512_add_epi32(conflict_hi, one_v);
-
+  // #pragma omp unroll
+  for (i = 0; i < loop_end; i += step) {
+    __m512i src_lo       = _mm512_unpacklo_epi16(src_v, zero_v);
+    __m512i src_hi       = _mm512_unpackhi_epi16(src_v, zero_v);
     __m512i histo_val_lo = _mm512_i32gather_epi32(src_lo, hptr, gather_scale);
+    __m512i conflict_lo  = _mm512_conflict_epi32(src_lo);
+    __m512i conflict_hi  = _mm512_conflict_epi32(src_hi);
+    conflict_lo          = _mm512_popcnt_epi32(conflict_lo);
+    conflict_lo          = _mm512_add_epi32(conflict_lo, one_v);
     histo_val_lo         = _mm512_add_epi32(histo_val_lo, conflict_lo);
     _mm512_i32scatter_epi32(hptr, src_lo, histo_val_lo, gather_scale);
 
     __m512i histo_val_hi = _mm512_i32gather_epi32(src_hi, hptr, gather_scale);
+    conflict_hi          = _mm512_popcnt_epi32(conflict_hi);
+    conflict_hi          = _mm512_add_epi32(conflict_hi, one_v);
     histo_val_hi         = _mm512_add_epi32(histo_val_hi, conflict_hi);
     _mm512_i32scatter_epi32(hptr, src_hi, histo_val_hi, gather_scale);
+    src_v                = _mm512_stream_load_si512(source + i+step);
   }
 }
 
 // TODO: Multi Naive + Naive Conv
 template <>
 void MyHisto::Create_Impl<MyHisto::Method::Naive_MultiSubloop>(uint16_t* source,
-                                                               int32_t data_size) {
+    int32_t data_size) {
   const int32_t range_max     = histo_.size();
   const int32_t sub_data_end  = data_size / parallel_size_;
   const int32_t sub_range_end = range_max / parallel_size_;
   std::ranges::fill(histo_all_, 0);
 
   int32_t* hptr = histo_.data();
-#pragma omp parallel for
-  for (int32_t i = 0; i < parallel_size_; i++) {
-    uint16_t* sptr = source + i * sub_data_end;
-    int32_t* hptri = hptr + i * range_max;
-#pragma omp unroll
-    for (int32_t j = 0; j < sub_data_end; j++) {
-      hptri[sptr[j]]++;
-    }
+#pragma omp parallel for num_threads(2)
+  for (int32_t j = 0; j < data_size; j += 8) {
+    hptr[omp_get_thread_num() * range_max + source[j]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 1]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 2]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 3]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 4]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 5]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 6]]++;
+    hptr[omp_get_thread_num() * range_max + source[j + 7]]++;
   }
 
-#pragma omp unroll
-  for (int32_t p = 1; p < parallel_size_; p++) {
-#pragma omp parallel for
-    for (int32_t i = 0; i < parallel_size_; i++) {
-      int32_t* histo_i = hptr + i * sub_range_end;
-      int32_t* hptrp   = hptr + p * range_max + i * sub_range_end;
-#pragma omp unroll
-      for (int32_t j = 0; j < sub_range_end; j++) {
-        histo_i[j] += hptrp[j];
-      }
-    }
+  const int32_t step = 512/8/sizeof(int32_t);
+#pragma omp parallel for num_threads(2)
+  for (int32_t j = 0; j < range_max; j += step) {
+    __m512i tmp = _mm512_loadu_si512(hptr + range_max + j);
+    __m512i src = _mm512_loadu_si512(hptr + j);
+    _mm512_storeu_si512(hptr + j, _mm512_add_epi32(tmp, src));
+
+    // hptr[j] += hptr[range_max + j];
+    // hptr[j + 1] += hptr[range_max + j + 1];
+    // hptr[j + 2] += hptr[range_max + j + 2];
+    // hptr[j + 3] += hptr[range_max + j + 3];
+    // hptr[j + 4] += hptr[range_max + j + 4];
+    // hptr[j + 5] += hptr[range_max + j + 5];
+    // hptr[j + 6] += hptr[range_max + j + 6];
+    // hptr[j + 7] += hptr[range_max + j + 7];
   }
 }
 // TODO: Multi Naive + AVX CONV
