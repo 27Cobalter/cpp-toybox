@@ -6,7 +6,8 @@
 
 #include <immintrin.h>
 
-constexpr VHAdd::Method VMA2 = VHAdd::Method::AVX2;
+constexpr VHAdd::Method VMA2  = VHAdd::Method::AVX2;
+constexpr VHAdd::Method VMA2V = VHAdd::Method::AVX2_Vertical;
 template <>
 std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x,
                                             int32_t offset_y, int32_t horizontal,
@@ -144,4 +145,55 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
   }
 
   return result_slice_;
+}
+
+template <>
+std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_t offset_x,
+                                             int32_t offset_y, int32_t horizontal,
+                                             int32_t vertical) {
+  assert(width_ * height_ == size);
+  assert((offset_x + horizontal) <= width_);
+  assert((offset_y + vertical) <= height_);
+
+  std::span<int32_t> acc = std::span<int32_t>(vaptr_ + offset_x, horizontal);
+  result_slice_[0]       = std::span<uint16_t>(vdptr_ + offset_x, horizontal);
+  std::ranges::fill(acc, 0);
+
+  constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
+  constexpr int32_t half_step = step >> 1;
+
+  __m256i zero_v = _mm256_setzero_si256();
+  __m256i vailo;
+  __m256i vaihi;
+  for (auto j : std::views::iota(offset_y, vertical)) {
+    uint16_t* sptrj = src + width_ * j;
+    vailo           = _mm256_loadu_epi32(vaptr_ + offset_x);
+    vaihi           = _mm256_loadu_epi32(vaptr_ + half_step + offset_x);
+    for (int32_t i = offset_x; i < horizontal; i += step) {
+      int32_t* vaptri = vaptr_ + i;
+      __m256i spji    = _mm256_loadu_epi32(sptrj + i);
+      __m256i lo      = _mm256_unpacklo_epi16(spji, zero_v);
+      __m256i hi      = _mm256_unpackhi_epi16(spji, zero_v);
+      lo              = _mm256_add_epi32(vailo, lo);
+      hi              = _mm256_add_epi32(vaihi, hi);
+      vailo = _mm256_loadu_epi32(vaptri + step);
+      vaihi = _mm256_loadu_epi32(vaptri + half_step + step);
+      _mm256_storeu_epi32(vaptri, lo);
+      _mm256_storeu_epi32(vaptri + half_step, hi);
+    }
+  }
+
+  float r   = 1.0 / vertical;
+  __m256 rv = _mm256_set1_ps(r);
+  for (int32_t i = offset_x; i < horizontal; i += step) {
+    // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
+    int32_t* vaptri = vaptr_ + i;
+    __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));
+    __m256 vaihi    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri + half_step));
+    __m256i lo      = _mm256_cvtps_epi32(_mm256_mul_ps(vailo, rv));
+    __m256i hi      = _mm256_cvtps_epi32(_mm256_mul_ps(vaihi, rv));
+    _mm256_storeu_epi32(vdptr_ + i, _mm256_packus_epi32(lo, hi));
+  }
+
+  return result_slice_[0];
 }

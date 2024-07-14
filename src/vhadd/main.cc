@@ -165,6 +165,17 @@ auto main() -> int {
                  std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
                      loop_count);
 
+    title = "CalcV AVX2_V";
+    start = std::chrono::high_resolution_clock::now();
+    for (auto i : std::views::iota(0, loop_count)) {
+      v_dst = vhadd.CalcV_Impl<VHAdd::Method::AVX2_Vertical>(src.ptr<uint16_t>(0), src.cols * src.rows,
+                                                      0, 0, src.cols, src.rows);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::println("{}: {} us", title,
+                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+                     loop_count);
+
     cv::imshow("src", src);
     for (auto i : std::views::iota(0, h_ref.size().area())) {
       std::println("[i]: {}, v: {}, h: {}, vd: {}, hd: {}", i,
