@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_TOOLCHAIN_FILE "C:\\Local\\src\\Vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "vcpkg.cmake")
+if(WIN32)
+  set(CMAKE_TOOLCHAIN_FILE "C:\\Local\\src\\Vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "vcpkg.cmake")
+endif()
 
 project(IMPL_TEST LANGUAGES CXX)
 
@@ -15,7 +17,7 @@ find_package(OpenMP REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 if(UNIX)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 endif()
 
 add_subdirectory(src)
