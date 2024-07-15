@@ -1,5 +1,4 @@
 #include <cassert>
-#include <print>
 #include <chrono>
 #include <concepts>
 #include <format>
@@ -7,11 +6,13 @@
 #include <limits>
 #include <new>
 #include <numeric>
+#include <print>
 #include <random>
 #include <ranges>
 #include <span>
 #include <valarray>
 
+#include <opencv2/core/utility.hpp>
 #include <opencv2/opencv.hpp>
 
 #include <InstructionInfo.h>
@@ -19,7 +20,7 @@
 #include "vhadd.h"
 
 template <typename T, typename U>
-  requires std::convertible_to<T, float> && std::convertible_to<U, float>
+requires std::convertible_to<T, float> && std::convertible_to<U, float>
 float CalcDiff(T* t, U* u, int32_t data_size) {
   float diff = 0;
   for (auto i : std::views::iota(0, data_size)) {
@@ -32,11 +33,12 @@ float CalcDiff(T* t, U* u, int32_t data_size) {
 }
 
 auto main() -> int {
+  cv::setNumThreads(1);
 #ifdef _MSC_VER
   constexpr int32_t loop_count = 10000;
   std::valarray<int32_t> width_samples{1024};
 #else
-  constexpr int32_t loop_count = 1000;
+  constexpr int32_t loop_count = 100000;
   std::valarray<int32_t> width_samples{1024};
 #endif
 
@@ -83,8 +85,8 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "reducce_h";
     start = std::chrono::high_resolution_clock::now();
@@ -93,8 +95,8 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "reducce_vh";
     start = std::chrono::high_resolution_clock::now();
@@ -104,85 +106,122 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcV Naive";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       v_dst = vhadd.CalcV_Impl<VHAdd::Method::Naive>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcH Naive";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       h_dst = vhadd.CalcH_Impl<VHAdd::Method::Naive>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcV AVX2";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       v_dst = vhadd.CalcV_Impl<VHAdd::Method::AVX2>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcH AVX2";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       h_dst = vhadd.CalcH_Impl<VHAdd::Method::AVX2>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcVH AVX2";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       auto [v_slice, h_slice] = vhadd.CalcVH_Impl<VHAdd::Method::AVX2>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
 
       h_dst = h_slice;
       v_dst = v_slice;
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
     title = "CalcV AVX2_V";
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, loop_count)) {
       v_dst = vhadd.CalcV_Impl<VHAdd::Method::AVX2_Vertical>(src.ptr<uint16_t>(0), src.cols * src.rows,
-                                                      0, 0, src.cols, src.rows);
+          0, 0, src.cols, src.rows);
     }
     end = std::chrono::high_resolution_clock::now();
     std::println("{}: {} us", title,
-                 std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                     loop_count);
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
 
-    cv::imshow("src", src);
-    for (auto i : std::views::iota(0, h_ref.size().area())) {
-      std::println("[i]: {}, v: {}, h: {}, vd: {}, hd: {}", i,
-          v_ref.ptr<float>(0)[i], h_ref.ptr<float>(0)[i], v_dst[i], h_dst[i]
-      );
+    title = "CalcV AVX512";
+    start = std::chrono::high_resolution_clock::now();
+    for (auto i : std::views::iota(0, loop_count)) {
+      v_dst = vhadd.CalcV_Impl<VHAdd::Method::AVX512>(src.ptr<uint16_t>(0), src.cols * src.rows,
+          0, 0, src.cols, src.rows);
     }
-    cv::waitKey();
+    end = std::chrono::high_resolution_clock::now();
+    std::println("{}: {} us", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
+
+    title = "CalcH AVX512";
+    start = std::chrono::high_resolution_clock::now();
+    for (auto i : std::views::iota(0, loop_count)) {
+      h_dst = vhadd.CalcH_Impl<VHAdd::Method::AVX512>(src.ptr<uint16_t>(0), src.cols * src.rows,
+          0, 0, src.cols, src.rows);
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::println("{}: {} us", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
+
+    title = "CalcVH AVX512";
+    start = std::chrono::high_resolution_clock::now();
+    for (auto i : std::views::iota(0, loop_count)) {
+      auto [v_slice, h_slice] = vhadd.CalcVH_Impl<VHAdd::Method::AVX512>(src.ptr<uint16_t>(0), src.cols * src.rows,
+          0, 0, src.cols, src.rows);
+
+      h_dst = h_slice;
+      v_dst = v_slice;
+    }
+    end = std::chrono::high_resolution_clock::now();
+    std::println("{}: {} us", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
+        loop_count);
+
+    // cv::imshow("src", src);
+    // for (auto i : std::views::iota(0, h_ref.size().area())) {
+    //   std::println("[i]: {}, v: {}, h: {}, vd: {}, hd: {}, diff: ({}, {})", i,
+    //       v_ref.ptr<float>(0)[i], h_ref.ptr<float>(0)[i], v_dst[i], h_dst[i],
+    //       static_cast<int32_t>(v_ref.ptr<float>(0)[i] - v_dst[i]), static_cast<int32_t>(h_ref.ptr<float>(0)[i] - h_dst[i])
+    //       );
+    // }
+    // cv::waitKey();
   }
 
   return 0;
