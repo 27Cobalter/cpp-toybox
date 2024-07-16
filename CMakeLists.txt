@@ -1,7 +1,11 @@
 cmake_minimum_required(VERSION 3.20)
 
-if(WIN32)
-  set(CMAKE_TOOLCHAIN_FILE "C:\\Local\\src\\Vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "vcpkg.cmake")
+# Exists OpenCVConfig.cmake dir, and Add $ENV{PATH} to bin dir
+if (WIN32)
+	set(OpenCV_DIR "C:/Local/src/opencv-git/build/install")
+	if(NOT OpenCV_DIR)
+	  set(CMAKE_TOOLCHAIN_FILE "C:\\Local\\src\\Vcpkg\\scripts\\buildsystems\\vcpkg.cmake" CACHE STRING "vcpkg.cmake")
+	endif()
 endif()
 
 project(IMPL_TEST LANGUAGES CXX)
