@@ -5,7 +5,7 @@ if(DEFINED ENV{VCPKG_ROOT} AND USE_VCPKG)
 	# Use vcpkg
 	set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "vcpkg.cmake")
 else()
-	if(WIN32)
+	if(WIN32 AND (NOT OpenCV_DIR))
 		# Use Local OpenCV
 		# Exists OpenCVConfig.cmake dir, and Add $ENV{PATH} to bin dir
 		set(OpenCV_DIR "C:/Local/src/opencv-git/build/install")
