@@ -269,3 +269,47 @@ TEST(TestVhaddAvx2, HalfOffset3rdQuad333x333) {
     }
   }
 }
+
+TEST(TestVhaddAvx2, AllOdd335x157) { // error
+  constexpr int32_t width  = 335;
+  constexpr int32_t height = 157;
+  cv::Mat src              = cv::Mat(cv::Size(width, height), CV_16UC1);
+  CreateTestData(src);
+  uint16_t* sptr = src.ptr<uint16_t>(0);
+
+  VHAdd profiler(width, height);
+
+  constexpr int32_t offset_x = 129;
+  constexpr int32_t offset_y = 23;
+  constexpr float horizontal = 133;
+  constexpr float vertical   = 111;
+
+  { // CalcV Naive
+    auto result = profiler.CalcV_Impl<VHAdd::Method::AVX2>(sptr, width * height, offset_x,
+                                                           offset_y, horizontal, vertical);
+    ASSERT_EQ(result.size(), static_cast<int32_t>(horizontal));
+    for (auto [i, elem] : std::views::enumerate(result)) {
+      EXPECT_EQ(elem, static_cast<int32_t>(i + 1 + offset_x));
+    }
+  }
+  { // CalcH Naive
+    auto result = profiler.CalcH_Impl<VHAdd::Method::AVX2>(sptr, width * height, offset_x,
+                                                           offset_y, horizontal, vertical);
+    ASSERT_EQ(result.size(), static_cast<int32_t>(vertical));
+    for (auto [i, elem] : std::views::enumerate(result)) {
+      EXPECT_EQ(elem, static_cast<int32_t>(offset_x + (vertical / 2)));
+    }
+  }
+  { // CalcVH Naive
+    auto [result_v, result_h] = profiler.CalcVH_Impl<VHAdd::Method::AVX2>(
+        sptr, width * height, offset_x, offset_y, horizontal, vertical);
+    ASSERT_EQ(result_v.size(), static_cast<int32_t>(horizontal));
+    ASSERT_EQ(result_h.size(), static_cast<int32_t>(vertical));
+    for (auto [i, elem] : std::views::enumerate(result_v)) {
+      EXPECT_EQ(elem, i + 1 + offset_x);
+    }
+    for (auto [i, elem] : std::views::enumerate(result_h)) {
+      EXPECT_EQ(elem, static_cast<int32_t>(offset_x + (vertical / 2)));
+    }
+  }
+}
