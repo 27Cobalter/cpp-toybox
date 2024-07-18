@@ -20,7 +20,7 @@ private:
   int32_t height_;
 
 public:
-  enum class Method { Naive, AVX2 ,AVX2_Vertical,  AVX512};
+  enum class Method { Naive, AVX2, AVX2_Vertical, AVX512 };
 
 public:
   VHAdd(const int32_t width, const int32_t height);
