@@ -24,9 +24,9 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
   constexpr int32_t half_step = step >> 1;
 
   __m256i zero_v = _mm256_setzero_si256();
-  for (auto j : std::views::iota(offset_y, vertical)) {
+  for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
-    for (int32_t i = offset_x; i < horizontal; i += step) {
+    for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
       int32_t* vaptri = vaptr_ + i;
       __m256i spji    = _mm256_loadu_epi32(sptrj + i);
       __m256i vailo   = _mm256_loadu_epi32(vaptri);
@@ -42,7 +42,7 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
 
   float r   = 1.0 / vertical;
   __m256 rv = _mm256_set1_ps(r);
-  for (int32_t i = offset_x; i < horizontal; i += step) {
+  for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
     // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
     int32_t* vaptri = vaptr_ + i;
     __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));
@@ -69,10 +69,10 @@ std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
 
   float r        = 1.0 / horizontal;
   __m256i zero_v = _mm256_setzero_si256();
-  for (auto j : std::views::iota(offset_y, vertical)) {
+  for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
     __m256i acc     = _mm256_setzero_si256();
-    for (int32_t i = offset_x; i < horizontal; i += step) {
+    for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
       __m256i spji = _mm256_loadu_epi32(sptrj + i);
       __m256i lo   = _mm256_unpacklo_epi16(spji, zero_v);
       __m256i hi   = _mm256_unpackhi_epi16(spji, zero_v);
@@ -108,11 +108,11 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
 
   float hr       = 1.0 / horizontal;
   __m256i zero_v = _mm256_setzero_si256();
-  for (auto j : std::views::iota(offset_y, vertical)) {
+  for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
 
     __m256i acc = _mm256_setzero_si256(); // h
-    for (int32_t i = offset_x; i < horizontal; i += step) {
+    for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
       int32_t* vaptri = vaptr_ + i;
       __m256i spji    = _mm256_loadu_epi32(sptrj + i);
       __m256i vailo   = _mm256_loadu_epi32(vaptri);             // v
@@ -135,7 +135,7 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
 
   float vr    = 1.0 / vertical;                                                   // v
   __m256 vr_v = _mm256_set1_ps(vr);                                               // v
-  for (int32_t i = offset_x; i < horizontal; i += step) {                         // v
+  for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {                         // v
     int32_t* vaptri = vaptr_ + i;                                                 // v
     __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));             // v
     __m256 vaihi    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri + half_step)); // v
@@ -165,11 +165,11 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_
   __m256i zero_v = _mm256_setzero_si256();
   __m256i vailo;
   __m256i vaihi;
-  for (auto j : std::views::iota(offset_y, vertical)) {
+  for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
     vailo           = _mm256_loadu_epi32(vaptr_ + offset_x);
     vaihi           = _mm256_loadu_epi32(vaptr_ + half_step + offset_x);
-    for (int32_t i = offset_x; i < horizontal; i += step) {
+    for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
       int32_t* vaptri = vaptr_ + i;
       __m256i spji    = _mm256_loadu_epi32(sptrj + i);
       __m256i lo      = _mm256_unpacklo_epi16(spji, zero_v);
@@ -185,7 +185,7 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_
 
   float r   = 1.0 / vertical;
   __m256 rv = _mm256_set1_ps(r);
-  for (int32_t i = offset_x; i < horizontal; i += step) {
+  for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
     // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
     int32_t* vaptri = vaptr_ + i;
     __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));
