@@ -44,10 +44,15 @@ auto main() -> int {
   std::mt19937 engine(seed());
   std::normal_distribution<> norm_dist(RANGE_SIZE >> 1, RANGE_SIZE / 10);
 
+#ifdef _MSC_VER
+  auto src_ptr = std::make_shared<uint16_t[]>(resolution_list.max() * resolution_list.max());
+  auto ref_ptr = std::make_shared<int32_t[]>(RANGE_SIZE);
+#else
   auto src_ptr = std::shared_ptr<uint16_t[]>(new (
       std::align_val_t(ALIGN_SIZE)) uint16_t[resolution_list.max() * resolution_list.max()]);
   auto ref_ptr =
       std::shared_ptr<int32_t[]>(new (std::align_val_t(ALIGN_SIZE)) int32_t[RANGE_SIZE]);
+#endif
   std::span<int32_t> ref(ref_ptr.get(), RANGE_SIZE);
 
   for (auto resolution : resolution_list) {
@@ -116,7 +121,8 @@ auto main() -> int {
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     // for (int i = 0; i < RANGE_SIZE; i++) {
-    //   std::cout << std::format("{:3}: {:6}, {:6}", i, ref[i], myhisto.histo_[i]) << std::endl;
+    //   std::cout << std::format("{:3}: {:6}, {:6}", i, ref[i], myhisto.histo_[i]) <<
+    //   std::endl;
     // }
 
     // cv::MatND hist;

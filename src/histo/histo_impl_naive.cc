@@ -1,5 +1,6 @@
 #include "histo.h"
 
+#include <algorithm>
 #include <ranges>
 
 #include <immintrin.h>

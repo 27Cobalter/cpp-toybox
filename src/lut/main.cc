@@ -1,13 +1,14 @@
-#include <iostream>
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <concepts>
 #include <format>
+#include <iostream>
 #include <limits>
 #include <new>
-#include <valarray>
-#include <chrono>
 #include <ranges>
 #include <span>
+#include <valarray>
 
 #include <InstructionInfo.h>
 

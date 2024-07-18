@@ -321,14 +321,14 @@ auto main() -> int {
 #pragma omp parallel for
     for (int32_t i = 0; i < data_size; i += 64) {
       float* dptri = dptr + i;
-#pragma omp unroll
+#pragma unroll
       for (int32_t ii = 0; ii < 64; ii++) {
         dptri[ii] = 0.0f;
       }
-#pragma omp unroll
+#pragma unroll
       for (int32_t j = 0; j < data_size; j++) {
         float* sptrij = sptr + i + data_size * j;
-#pragma omp unroll
+#pragma unroll
         for (int ii = 0; ii < 64; ii++) {
           dptri[ii] += sptrij[ii];
         }
