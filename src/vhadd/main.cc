@@ -40,6 +40,7 @@ auto main() -> int {
   std::valarray<int32_t> width_samples{1024};
 #else
   constexpr int32_t loop_count = 100000;
+  constexpr int32_t slow_count = loop_count / 100;
   std::valarray<int32_t> width_samples{1024};
 #endif
 
@@ -60,6 +61,7 @@ auto main() -> int {
   std::normal_distribution<> norm(RANGE_SIZE >> 2, RANGE_SIZE / 9);
 
   for (auto width : width_samples) {
+    std::cout << std::format("{}x{}", width, width) << std::endl;
     cv::Mat src = cv::Mat::zeros(cv::Size(width, width), CV_16UC1);
     cv::Mat h_ref;
     cv::Mat v_ref;
