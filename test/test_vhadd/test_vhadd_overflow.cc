@@ -7,11 +7,11 @@
 #include <vhadd.h>
 
 constexpr int32_t test_val = std::numeric_limits<uint16_t>::max();
+constexpr int32_t image_size = std::numeric_limits<int16_t>::max();
 
 TEST(Overflow, CalcV_Naive) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
@@ -26,9 +26,8 @@ TEST(Overflow, CalcV_Naive) {
 }
 
 TEST(Overflow, CalcH_Naive) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
@@ -43,9 +42,8 @@ TEST(Overflow, CalcH_Naive) {
 }
 
 TEST(Overflow, CalcVH_Naive) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
@@ -64,9 +62,8 @@ TEST(Overflow, CalcVH_Naive) {
 }
 
 TEST(Overflow, CalcV_Avx2) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
@@ -81,9 +78,8 @@ TEST(Overflow, CalcV_Avx2) {
 }
 
 TEST(Overflow, CalcH_Avx2) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
@@ -98,9 +94,8 @@ TEST(Overflow, CalcH_Avx2) {
 }
 
 TEST(Overflow, CalcVH_Avx2) {
-  constexpr int32_t size = 8192;
   cv::Mat src =
-      cv::Mat::ones(cv::Size(size, size), CV_16UC1) * test_val;
+      cv::Mat::ones(cv::Size(image_size, image_size), CV_16UC1) * test_val;
   uint16_t* sptr = src.ptr<uint16_t>(0);
 
   VHAdd profiler(src.cols, src.rows);
