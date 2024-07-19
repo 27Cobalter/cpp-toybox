@@ -81,7 +81,8 @@ std::span<uint16_t> VHAdd::CalcH_Impl<VMA512>(uint16_t* src, int32_t size, int32
     acc           = _mm512_add_epi32(acc, cross);
     cross         = _mm512_shuffle_epi32(acc, _MM_PERM_CDAB);
     acc           = _mm512_add_epi32(acc, cross);
-    int32_t v     = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4];
+    int32_t v     = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4] +
+                reinterpret_cast<int32_t*>(&acc)[8] + reinterpret_cast<int32_t*>(&acc)[12];
     for (; i < offset_x + horizontal; i++) {
       v += sptrj[i];
     }
@@ -133,11 +134,12 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA512>(uint16_t* src, int
     __m512i vailo   = _mm512_loadu_epi32(vaptri);             // v
     __m512i vaihi   = _mm512_loadu_epi32(vaptri + half_step); // v
 
-    __m512i cross = _mm512_shuffle_epi32(acc, _MM_PERM_BADC);                              // h
-    acc           = _mm512_add_epi32(acc, cross);                                          // h
-    cross         = _mm512_shuffle_epi32(acc, _MM_PERM_CDAB);                              // h
-    acc           = _mm512_add_epi32(acc, cross);                                          // h
-    int32_t v = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4]; // h
+    __m512i cross = _mm512_shuffle_epi32(acc, _MM_PERM_BADC); // h
+    acc           = _mm512_add_epi32(acc, cross);             // h
+    cross         = _mm512_shuffle_epi32(acc, _MM_PERM_CDAB); // h
+    acc           = _mm512_add_epi32(acc, cross);             // h
+    int32_t v     = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4] +
+                reinterpret_cast<int32_t*>(&acc)[8] + reinterpret_cast<int32_t*>(&acc)[12]; // h
 
     // for vertical padding calc
     __m512i lo = _mm512_unpacklo_epi16(spji, zero_v); // v
