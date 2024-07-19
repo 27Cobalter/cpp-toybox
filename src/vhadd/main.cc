@@ -95,8 +95,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          v_ref.at<float>(0));
 
       title = "reducce_h P";
       time  = slow_count;
@@ -106,8 +107,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          h_ref.at<float>(0));
 
       title = "reducce_vh P";
       time  = slow_count;
@@ -118,8 +120,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}, {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          v_ref.at<float>(0), h_ref.at<float>(0));
     }
 
     cv::setNumThreads(1);
@@ -131,8 +134,9 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println(
-        "{}: {} us", title,
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+        "{}: {} us => {}", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+        v_ref.at<float>(0));
 
     title = "reducce_h";
     time  = slow_count;
@@ -142,8 +146,9 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println(
-        "{}: {} us", title,
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+        "{}: {} us => {}", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+        h_ref.at<float>(0));
 
     title = "reducce_vh";
     time  = slow_count;
@@ -154,8 +159,9 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println(
-        "{}: {} us", title,
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+        "{}: {} us => {}, {}", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+        v_ref.at<float>(0));
 
     title = "CalcV Naive";
     time  = slow_count;
@@ -166,8 +172,9 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println(
-        "{}: {} us", title,
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+        "{}: {} us => {}", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+        v_dst[0]);
 
     title = "CalcH Naive";
     time  = slow_count;
@@ -178,8 +185,9 @@ auto main() -> int {
     }
     end = std::chrono::high_resolution_clock::now();
     std::println(
-        "{}: {} us", title,
-        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+        "{}: {} us => {}", title,
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+        h_dst[0]);
 
     if (supported_avx2) {
       title = "CalcV AVX2";
@@ -191,8 +199,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          v_dst[0]);
 
       title = "CalcH AVX2";
       time  = loop_count;
@@ -203,8 +212,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          h_dst[0]);
 
       title = "CalcVH AVX2";
       time  = loop_count;
@@ -218,8 +228,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}, {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          h_dst[0], v_dst[0]);
 
       title = "CalcV AVX2_V";
       time  = loop_count;
@@ -230,8 +241,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          v_dst[0]);
     }
 
     if (supported_avx512f) {
@@ -244,8 +256,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          v_dst[0]);
 
       title = "CalcH AVX512";
       time  = loop_count;
@@ -256,8 +269,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          h_dst[0]);
 
       title = "CalcVH AVX512";
       time  = loop_count;
@@ -271,8 +285,9 @@ auto main() -> int {
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us", title,
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time);
+          "{}: {} us => {}, {}", title,
+          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
+          h_dst[0], v_dst[0]);
     }
 
     // cv::imshow("src", src);
