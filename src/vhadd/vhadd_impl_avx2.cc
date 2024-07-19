@@ -1,5 +1,6 @@
 #include "vhadd.h"
 
+#include <expected>
 #include <algorithm>
 #include <cassert>
 #include <ranges>
@@ -8,13 +9,14 @@
 
 constexpr VHAdd::Method VMA2  = VHAdd::Method::AVX2;
 constexpr VHAdd::Method VMA2V = VHAdd::Method::AVX2_Vertical;
+
+constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
+constexpr int32_t half_step = step >> 1;
+
 template <>
 std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x,
                                             int32_t offset_y, int32_t horizontal,
                                             int32_t vertical) {
-  constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
-  constexpr int32_t half_step = step >> 1;
-
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);
@@ -43,7 +45,6 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
   float r   = CalcRcp(vertical);
   __m256 rv = _mm256_set1_ps(r);
   for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
-    // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
     int32_t* vaptri = vaptr_ + i;
     __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));
     __m256 vaihi    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri + half_step));
@@ -64,8 +65,6 @@ std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
   assert((offset_y + vertical) <= height_);
 
   result_slice_[1] = std::span<uint16_t>(hdptr_ + offset_y, vertical);
-
-  constexpr int32_t step = 256 / 8 / sizeof(uint16_t);
 
   float r        = CalcRcp(horizontal);
   __m256i zero_v = _mm256_setzero_si256();
@@ -101,9 +100,6 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);
-
-  constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
-  constexpr int32_t half_step = step >> 1;
 
   std::span<int32_t> acc = std::span<int32_t>(vaptr_ + offset_x, horizontal + step - 1);
   result_slice_[0]       = std::span<uint16_t>(vdptr_ + offset_x, horizontal);
@@ -183,9 +179,6 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_
   result_slice_[0]       = std::span<uint16_t>(vdptr_ + offset_x, horizontal);
   std::ranges::fill(acc, 0);
 
-  constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
-  constexpr int32_t half_step = step >> 1;
-
   __m256i zero_v = _mm256_setzero_si256();
   __m256i vailo;
   __m256i vaihi;
@@ -210,7 +203,6 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_
   float r   = CalcRcp(vertical);
   __m256 rv = _mm256_set1_ps(r);
   for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
-    // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
     int32_t* vaptri = vaptr_ + i;
     __m256 vailo    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri));
     __m256 vaihi    = _mm256_cvtepi32_ps(_mm256_loadu_epi32(vaptri + half_step));
