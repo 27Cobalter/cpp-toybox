@@ -40,7 +40,7 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
     }
   }
 
-  float r   = 1.0 / vertical + std::numeric_limits<float>::epsilon();
+  float r   = CalcRcp(vertical);
   __m256 rv = _mm256_set1_ps(r);
   for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
     // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());
@@ -67,7 +67,7 @@ std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
 
   constexpr int32_t step = 256 / 8 / sizeof(uint16_t);
 
-  float r        = 1.0 / horizontal + std::numeric_limits<float>::epsilon();
+  float r        = CalcRcp(horizontal);
   __m256i zero_v = _mm256_setzero_si256();
   for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
@@ -110,7 +110,7 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
   result_slice_[1]       = std::span<uint16_t>(hdptr_ + offset_y, vertical);
   std::ranges::fill(acc, 0);
 
-  float hr       = 1.0 / horizontal + std::numeric_limits<float>::epsilon();
+  float hr       = CalcRcp(horizontal);
   __m256i zero_v = _mm256_setzero_si256();
   for (auto j : std::views::iota(offset_y, offset_y + vertical)) {
     uint16_t* sptrj = src + width_ * j;
@@ -157,7 +157,7 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
     hdptr_[j] = static_cast<uint16_t>(static_cast<float>(v) * hr); // h
   }
 
-  float vr    = 1.0 / vertical + std::numeric_limits<float>::epsilon();           // v
+  float vr    = CalcRcp(vertical);
   __m256 vr_v = _mm256_set1_ps(vr);                                               // v
   for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {              // v
     int32_t* vaptri = vaptr_ + i;                                                 // v
@@ -207,7 +207,7 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_
     }
   }
 
-  float r   = 1.0 / vertical + std::numeric_limits<float>::epsilon();
+  float r   = CalcRcp(vertical);
   __m256 rv = _mm256_set1_ps(r);
   for (int32_t i = offset_x; i < offset_x + horizontal; i += step) {
     // _mm256_storeu_epi32(vdptr_ + i, _mm256_setzero_si256());

@@ -80,9 +80,9 @@ TEST_P(MultiParam, CalcV_Naive) {
     auto result = profiler.CalcV_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
                                                             param.offset_x, param.offset_y,
                                                             param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.horizontal));
+    ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, static_cast<int32_t>(i + param.offset_x));
+      ASSERT_EQ(elem, i + param.offset_x);
     }
   }
 
@@ -91,9 +91,9 @@ TEST_P(MultiParam, CalcV_Naive) {
     auto result = profiler.CalcV_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
                                                             param.offset_x, param.offset_y,
                                                             param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.horizontal));
+    ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, static_cast<int32_t>(i + param.offset_x));
+      ASSERT_EQ(elem, i + param.offset_x);
     }
   }
 }
@@ -111,9 +111,9 @@ TEST_P(MultiParam, CalcH_Naive) {
     auto result = profiler.CalcH_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
                                                             param.offset_x, param.offset_y,
                                                             param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.vertical));
+    ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
+      ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
     }
   }
 
@@ -122,9 +122,9 @@ TEST_P(MultiParam, CalcH_Naive) {
     auto result = profiler.CalcH_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
                                                             param.offset_x, param.offset_y,
                                                             param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.vertical));
+    ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
+      ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
     }
   }
 }
@@ -145,10 +145,10 @@ TEST_P(MultiParam, CalcVH_Naive) {
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
-      EXPECT_EQ(elem, i + param.offset_x);
+      ASSERT_EQ(elem, i + param.offset_x);
     }
     for (auto [i, elem] : std::views::enumerate(result_h)) {
-      EXPECT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
+      ASSERT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
     }
   }
 
@@ -160,10 +160,10 @@ TEST_P(MultiParam, CalcVH_Naive) {
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
-      EXPECT_EQ(elem, i + param.offset_x);
+      ASSERT_EQ(elem, i + param.offset_x);
     }
     for (auto [i, elem] : std::views::enumerate(result_h)) {
-      EXPECT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
+      ASSERT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
     }
   }
 }
@@ -183,9 +183,9 @@ TEST_P(MultiParam, CalcH_Avx2) {
     auto result = profiler.CalcV_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
                                                            param.offset_x, param.offset_y,
                                                            param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.horizontal));
+    ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, static_cast<int32_t>(i + param.offset_x));
+      ASSERT_EQ(elem, i + param.offset_x);
     }
   }
 
@@ -194,9 +194,9 @@ TEST_P(MultiParam, CalcH_Avx2) {
     auto result = profiler.CalcV_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
                                                            param.offset_x, param.offset_y,
                                                            param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.horizontal));
+    ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, static_cast<int32_t>(i + param.offset_x));
+      ASSERT_EQ(elem, i + param.offset_x);
     }
   }
 }
@@ -214,9 +214,9 @@ TEST_P(MultiParam, CalcV_Avx2) {
     auto result = profiler.CalcH_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
                                                            param.offset_x, param.offset_y,
                                                            param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.vertical));
+    ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
+      ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
     }
   }
 
@@ -225,9 +225,9 @@ TEST_P(MultiParam, CalcV_Avx2) {
     auto result = profiler.CalcH_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
                                                            param.offset_x, param.offset_y,
                                                            param.horizontal, param.vertical);
-    ASSERT_EQ(result.size(), static_cast<int32_t>(param.vertical));
+    ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
-      EXPECT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
+      ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
     }
   }
 }
@@ -248,10 +248,10 @@ TEST_P(MultiParam, CalcVH_Avx2) {
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
-      EXPECT_EQ(elem, i + param.offset_x);
+      ASSERT_EQ(elem, i + param.offset_x);
     }
     for (auto [i, elem] : std::views::enumerate(result_h)) {
-      EXPECT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
+      ASSERT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
     }
   }
 
@@ -263,10 +263,10 @@ TEST_P(MultiParam, CalcVH_Avx2) {
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
-      EXPECT_EQ(elem, i + param.offset_x);
+      ASSERT_EQ(elem, i + param.offset_x);
     }
     for (auto [i, elem] : std::views::enumerate(result_h)) {
-      EXPECT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
+      ASSERT_EQ(elem, param.offset_x + (param.horizontal - 1) / 2);
     }
   }
 }

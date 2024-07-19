@@ -1,8 +1,9 @@
 #pragma once
 
+#include <array>
+#include <cmath>
 #include <cstdint>
 #include <memory>
-#include <array>
 #include <span>
 
 class VHAdd {
@@ -22,6 +23,9 @@ private:
 public:
   enum class Method { Naive, AVX2, AVX2_Vertical, AVX512 };
 
+private:
+  float CalcRcp(float v);
+
 public:
   VHAdd(const int32_t width, const int32_t height);
 
@@ -36,3 +40,10 @@ public:
                                                  int32_t offset_y, int32_t horizontal,
                                                  int32_t vertical);
 };
+
+inline float VHAdd::CalcRcp(float v) {
+  // accurate rcp
+  float r_tmp = 1.0f / v;
+  float e     = 1.0f - r_tmp * v;
+  return std::fma<float>(r_tmp, e, r_tmp);
+}
