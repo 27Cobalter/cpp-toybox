@@ -1,4 +1,4 @@
-add_executable(test_vhadd test_vhadd_naive.cc test_vhadd_avx2.cc "misc.h")
+add_executable(test_vhadd test_vhadd_multiparam.cc)
 
 
 include(GoogleTest)
