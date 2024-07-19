@@ -161,7 +161,7 @@ auto main() -> int {
     std::println(
         "{}: {} us => {}, {}", title,
         std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
-        v_ref.at<float>(0));
+        v_ref.at<float>(0), h_ref.at<float>(0));
 
     title = "CalcV Naive";
     time  = slow_count;
