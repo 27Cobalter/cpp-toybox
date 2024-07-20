@@ -88,14 +88,14 @@ auto main() -> int {
     if (cpu_count >= 2) {
       cv::setNumThreads(cpu_count);
       title = "reducce_v P";
-      time - slow_count;
+      time  = slow_count;
       start = std::chrono::high_resolution_clock::now();
       for (auto i : std::views::iota(0, time)) {
         cv::reduce(src, v_ref, 0, cv::REDUCE_AVG, CV_32F);
       }
       end = std::chrono::high_resolution_clock::now();
       std::println(
-          "{}: {} us => {}", title,
+                       "{}: {} us => {}", title,
           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / time,
           v_ref.at<float>(0));
 
@@ -127,7 +127,7 @@ auto main() -> int {
 
     cv::setNumThreads(1);
     title = "reducce_v";
-    time - slow_count;
+    time  = slow_count;
     start = std::chrono::high_resolution_clock::now();
     for (auto i : std::views::iota(0, time)) {
       cv::reduce(src, v_ref, 0, cv::REDUCE_AVG, CV_32F);
