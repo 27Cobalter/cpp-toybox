@@ -37,8 +37,8 @@ auto main() -> int {
         __m256i a = _mm256_loadu_epi8(src - 4 + si);
         __m256i b = _mm256_shuffle_epi8(a, shuffle_idx);
         __m256i c = _mm256_srli_epi32(b, 4);
-        __m256i d = _mm256_blend_epi16(b, c, 0b1010101010101010);
-        __m256i e = _mm256_and_epi32(d, and_mask);
+        __m256i d = _mm256_blend_epi16(b, c, 0b10101010);
+        __m256i e = _mm256_and_si256(d, and_mask);
         _mm256_storeu_epi16(dst + di, e);
       }
     }
