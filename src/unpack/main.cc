@@ -1,7 +1,8 @@
-#include <cstdint>
-#include <memory>
-#include <iostream>
 #include <chrono>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <random>
 #include <ranges>
 
 #include <immintrin.h>
@@ -15,10 +16,16 @@ auto main() -> int {
   uint8_t* src                    = ssp.get();
   uint16_t* dst                   = dsp.get();
 
+  std::random_device seed;
+  std::mt19937 gen(seed());
+
   { // mono12p
     for (int i = 0; i < img_size / 2 * 3; i += 3) {
-      uint16_t elem1 = 4000 + (2 * i / 3);
-      uint16_t elem2 = 4000 + (2 * i / 3) + 1;
+      
+      // uint16_t elem1 = 4000 + (2 * i / 3);
+      // uint16_t elem2 = 4000 + (2 * i / 3) + 1;
+      uint16_t elem1 = static_cast<uint16_t>(gen()) & 0x0FFF;
+      uint16_t elem2 = static_cast<uint16_t>(gen()) & 0x0FFF;
       src[i]         = elem1 & 0xFF;
       src[i + 1]     = (elem2 & 0xF) << 4 | (elem1 & 0xF00) >> 8;
       src[i + 2]     = (elem2 & 0xFF0) >> 4;
