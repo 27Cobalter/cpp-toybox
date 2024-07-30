@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cstdint>
+#include <format>
 #include <iostream>
 #include <memory>
 #include <random>
@@ -12,9 +13,11 @@ auto main() -> int {
   constexpr int32_t loop_num      = 10000;
   // constexpr int32_t loop_num      = 1;
   std::shared_ptr<uint8_t[]> ssp  = std::make_shared<uint8_t[]>(img_size / 2 * 3);
-  std::shared_ptr<uint16_t[]> dsp = std::make_shared<uint16_t[]>(img_size);
+  std::shared_ptr<uint16_t[]> dsp1 = std::make_shared<uint16_t[]>(img_size);
+  std::shared_ptr<uint16_t[]> dsp2 = std::make_shared<uint16_t[]>(img_size);
   uint8_t* src                    = ssp.get();
-  uint16_t* dst                   = dsp.get();
+  uint16_t* dst1                   = dsp1.get();
+  uint16_t* dst2                   = dsp2.get();
 
   std::random_device seed;
   std::mt19937 gen(seed());
@@ -46,7 +49,7 @@ auto main() -> int {
         __m256i c = _mm256_srli_epi32(b, 4);
         __m256i d = _mm256_blend_epi16(b, c, 0b10101010);
         __m256i e = _mm256_and_si256(d, and_mask);
-        _mm256_storeu_epi16(dst + di, e);
+        _mm256_storeu_epi16(dst1 + di, e);
       }
     }
     auto end = std::chrono::high_resolution_clock::now();
@@ -57,8 +60,8 @@ auto main() -> int {
 
   { // mono12
     for (int i = 0; i < img_size / 2 * 3; i += 3) {
-      uint16_t elem1 = 4000 + (2 * i / 3);
-      uint16_t elem2 = 4000 + (2 * i / 3) + 1;
+      uint16_t elem1 = dst1[(2 * i / 3)];
+      uint16_t elem2 = dst1[(2 * i / 3) + 1];
       src[i]         = (elem1 & 0xFF0) >> 4;
       src[i + 1]     = (elem2 & 0x00F) << 4 | (elem1 & 0x00F);
       src[i + 2]     = (elem2 & 0xFF0) >> 4;
@@ -78,13 +81,18 @@ auto main() -> int {
         __m256i c = _mm256_slli_epi16(b, 4);
         __m256i d = _mm256_blendv_epi8(b, c, blend_mask);
         __m256i e = _mm256_srli_epi16(d, 4);
-        _mm256_storeu_epi16(dst + di, e);
+        _mm256_storeu_epi16(dst2 + di, e);
       }
     }
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
                      loop_num
               << std::endl;
+  }
+
+  for (auto i : std::views::iota(0, img_size)) {
+    if (dst1[i] != dst2[i])
+      std::cout << std::format("error dst[{}]={}", i, dst1[i] - dst2[i]) << std::endl;
   }
 
   return 0;
