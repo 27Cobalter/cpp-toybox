@@ -1,11 +1,3 @@
-# add_subdirectory(hadd)
-# add_subdirectory(vadd)
-# add_subdirectory(hadd_multi)
-
-# add_subdirectory(vhadd)
-# add_subdirectory(lut)
-# add_subdirectory(histo)
-# add_subdirectory(InstructionInfo)
-# add_subdirectory(unpack)
-add_subdirectory(multi_frame_access)
+if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+endif()
 add_subdirectory(inter_branch)
