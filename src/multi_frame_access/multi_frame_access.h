@@ -29,4 +29,5 @@ public:
   std::vector<std::shared_ptr<uint32_t[]>> round_buffer_;
   MultiAlloc(int32_t width, int32_t height, int32_t frames);
   uint32_t* Add(uint32_t* src);
+  uint32_t* AddAverage(uint32_t* src);
 };

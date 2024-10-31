@@ -26,48 +26,48 @@ int32_t main() {
   for (auto i : std::views::iota(0, loop_count)) {
     ret = single.Add(delta.data());
   }
-  end   = std::chrono::high_resolution_clock::now();
+  end = std::chrono::high_resolution_clock::now();
   std::cout << std::format(
                    "single : {}",
                    std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count())
             << std::endl;
-  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height -1])
+  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height - 1])
             << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
   for (auto i : std::views::iota(0, loop_count)) {
     ret = multi.Add(delta.data());
   }
-  end   = std::chrono::high_resolution_clock::now();
+  end = std::chrono::high_resolution_clock::now();
   std::cout << std::format(
                    "multi : {}",
                    std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count())
             << std::endl;
-  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height-1])
+  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height - 1])
             << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
   for (auto i : std::views::iota(0, loop_count)) {
     ret = single.Add(delta.data());
   }
-  end   = std::chrono::high_resolution_clock::now();
+  end = std::chrono::high_resolution_clock::now();
   std::cout << std::format(
                    "single : {}",
                    std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count())
             << std::endl;
-  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height -1])
+  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height - 1])
             << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
   for (auto i : std::views::iota(0, loop_count)) {
     ret = multi.Add(delta.data());
   }
-  end   = std::chrono::high_resolution_clock::now();
+  end = std::chrono::high_resolution_clock::now();
   std::cout << std::format(
                    "multi : {}",
                    std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count())
             << std::endl;
-  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height-1])
+  std::cout << std::format("ret[0] {}, ret[width * height] {}", ret[0], ret[width * height - 1])
             << std::endl;
   return 0;
 }
