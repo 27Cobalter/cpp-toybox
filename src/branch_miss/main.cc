@@ -1,5 +1,4 @@
 #include <chrono>
-#include <algorithm>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -10,7 +9,7 @@
 #if _MSC_VER
 #define NOINLINE __declspec(noinline)
 #else
-#define NOINLINE __attribute__((noinline))
+#define NOINLINE
 #endif
 
 NOINLINE uint16_t branch_hit() {
@@ -24,11 +23,12 @@ NOINLINE uint16_t branch_miss() {
 auto main() -> int {
   constexpr int32_t size     = 4096 * 4096;
   constexpr int32_t iter_num = 10;
-  constexpr int32_t loop_num = 10;
+  constexpr int32_t loop_num = 100;
 
   int32_t threshold = 4000;
 
   std::random_device seed;
+  std::mt19937 gen(seed());
   std::uniform_int_distribution<> low(0, threshold - 1);
   std::uniform_int_distribution<> high(threshold, 8191);
   std::uniform_int_distribution<> full(0, 8191);
@@ -38,13 +38,13 @@ auto main() -> int {
 
   uint16_t* sptr = hit.get();
   uint16_t* mptr = miss.get();
-  for (auto i : std::views::iota(0, size >> 1)) {
-    sptr[i] = low(seed);
-    mptr[i] = full(seed);
+  for (auto i : std::views::iota(0, size / 2)) {
+    sptr[i] = low(gen);
+    mptr[i] = full(gen);
   }
   for (auto i : std::views::iota(size >> 1, size)) {
-    sptr[i] = high(seed);
-    mptr[i] = full(seed);
+    sptr[i] = high(gen);
+    mptr[i] = full(gen);
   }
 
   int32_t s_total= 0;
@@ -57,23 +57,23 @@ auto main() -> int {
     std::chrono::high_resolution_clock::time_point start, end;
 
     start = std::chrono::high_resolution_clock::now();
-    for (auto loop : std::views::iota(0, loop_num)) {
-      for (auto i : std::views::iota(0, size)) {
-        if (sptr[i] < threshold)
-          sret += branch_hit();
-        else
-          sret += branch_miss();
-      }
-    }
+    // for(int32_t loop = 0; loop < loop_num; loop++) {
+    //   for(int32_t i  =  0; i < size; i++){
+    //     if (sptr[i] < threshold)
+    //       sret += branch_hit();
+    //     else
+    //       sret += branch_miss();
+    //   }
+    // }
     end = std::chrono::high_resolution_clock::now();
     int32_t s_lap = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     s_total += s_lap;
     std::cout << std::format("Hit: {}, sret: {}", static_cast<float>(s_lap) / loop_num, sret)
-              << std::endl;
+      << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
-    for (auto loop : std::views::iota(0, loop_num)) {
-      for (auto i : std::views::iota(0, size)) {
+    for(int32_t loop  =  0; loop < loop_num; loop++){
+      for(int32_t i = 0; i < size; i++){
         if (mptr[i] < threshold)
           mret += branch_hit();
         else
@@ -84,12 +84,12 @@ auto main() -> int {
     int32_t m_lap = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     m_total += m_lap;
     std::cout << std::format("Miss: {}, mret: {}", static_cast<float>(m_lap) / loop_num, mret)
-              << std::endl;
+      << std::endl;
     ;
   }
   std::cout << std::format("Total ({}, {}), Lap ({}, {})", s_total, m_total,
-                           s_total / loop_num / iter_num, m_total / loop_num / iter_num)
-            << std::endl;
+      s_total / loop_num / iter_num, m_total / loop_num / iter_num)
+    << std::endl;
   ;
 
   return 0;
