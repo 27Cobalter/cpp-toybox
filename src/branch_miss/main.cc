@@ -35,9 +35,11 @@ auto main() -> int {
 
   std::shared_ptr<uint16_t[]> hit  = std::make_shared<uint16_t[]>(size);
   std::shared_ptr<uint16_t[]> miss = std::make_shared<uint16_t[]>(size);
+  std::shared_ptr<uint16_t[]> cross = std::make_shared<uint16_t[]>(size);
 
   uint16_t* sptr = hit.get();
   uint16_t* mptr = miss.get();
+  uint16_t* cptr  = cross.get();
   for (auto i : std::views::iota(0, size / 2)) {
     sptr[i] = low(gen);
     mptr[i] = full(gen);
@@ -46,25 +48,31 @@ auto main() -> int {
     sptr[i] = high(gen);
     mptr[i] = full(gen);
   }
+  for (int i = 0; i < size; i += 2) {
+    cptr[i] = low(gen);
+    cptr[i + 1] = high(gen);
+  }
 
   int32_t s_total= 0;
   int32_t m_total = 0;
+  int32_t c_total = 0;
 
   for (auto iter : std::views::iota(0, iter_num)) {
     int32_t sret = 0;
     int32_t mret = 0;
+    int32_t cret = 0;
 
     std::chrono::high_resolution_clock::time_point start, end;
 
     start = std::chrono::high_resolution_clock::now();
-    // for(int32_t loop = 0; loop < loop_num; loop++) {
-    //   for(int32_t i  =  0; i < size; i++){
-    //     if (sptr[i] < threshold)
-    //       sret += branch_hit();
-    //     else
-    //       sret += branch_miss();
-    //   }
-    // }
+    for(int32_t loop = 0; loop < loop_num; loop++) {
+      for(int32_t i  =  0; i < size; i++){
+        if (sptr[i] < threshold)
+          sret += branch_hit();
+        else
+          sret += branch_miss();
+      }
+    }
     end = std::chrono::high_resolution_clock::now();
     int32_t s_lap = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     s_total += s_lap;
@@ -85,10 +93,24 @@ auto main() -> int {
     m_total += m_lap;
     std::cout << std::format("Miss: {}, mret: {}", static_cast<float>(m_lap) / loop_num, mret)
       << std::endl;
-    ;
+
+    start = std::chrono::high_resolution_clock::now();
+    for(int32_t loop  =  0; loop < loop_num; loop++){
+      for(int32_t i = 0; i < size; i++){
+        if (cptr[i] < threshold)
+          cret += branch_hit();
+        else
+          cret += branch_miss();
+      }
+    }
+    end = std::chrono::high_resolution_clock::now();
+    int32_t c_lap = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    c_total += c_lap;
+    std::cout << std::format("cross {}, mret: {}", static_cast<float>(c_lap) / loop_num, cret)
+      << std::endl;
   }
-  std::cout << std::format("Total ({}, {}), Lap ({}, {})", s_total, m_total,
-      s_total / loop_num / iter_num, m_total / loop_num / iter_num)
+  std::cout << std::format("Total ({}, {}, {}), Lap ({}, {}, {})", s_total, m_total, c_total,
+      s_total / loop_num / iter_num, m_total / loop_num / iter_num, c_total / loop_num / iter_num)
     << std::endl;
   ;
 
