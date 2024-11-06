@@ -10,7 +10,7 @@
 
 auto main() -> int32_t {
   constexpr int32_t iter       = 10 << 6;
-  constexpr int32_t loop_count = 1000;
+  constexpr int32_t loop_count = 100;
   constexpr int32_t data_size  = 2048 * 2048 / 16;
 
   std::chrono::high_resolution_clock::time_point start, end;

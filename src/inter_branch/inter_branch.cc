@@ -56,11 +56,11 @@ void MultiOpExt_Impl(int32_t size, const uint16_t* src, uint16_t& a, uint16_t& b
 }
 
 template <bool... bools>
-inline void MultiOpExt_Impl(bool head, auto&... args) {
+inline void MultiOpExt_Impl(bool head, auto&&... args) {
   if (head) {
-    MultiOpExt_Impl<bools..., true>(args...);
+    MultiOpExt_Impl<bools..., true>(std::forward<decltype(args)>(args)...);
   } else {
-    MultiOpExt_Impl<bools..., false>(args...);
+    MultiOpExt_Impl<bools..., false>(std::forward<decltype(args)>(args)...);
   }
 }
 
