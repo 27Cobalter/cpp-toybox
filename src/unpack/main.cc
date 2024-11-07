@@ -6,7 +6,7 @@
 #include <random>
 #include <ranges>
 
-#if __has_include(<immintrin.h>)
+#if __has_include(<immintrin.h>) && !defined(__ARM_NEON)
 #include <immintrin.h>
 #define __AVX2__
 #define __SSE42__
