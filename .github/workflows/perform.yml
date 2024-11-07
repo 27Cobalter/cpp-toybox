@@ -1,0 +1,19 @@
+name: perform
+
+on: workflow_dispatch
+
+jobs:
+  perform:
+    strategy:
+      matrix:
+        os: ["ubuntu-latest", "macos-14"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: uname
+        run: uname -a
+      - name: cmake
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+          ./bin/unpack_main
