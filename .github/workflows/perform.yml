@@ -22,6 +22,6 @@ jobs:
         run: arch -arch x86_64 sysctl -a | grep -E '(cpu|hw.optional)'
       - name: cmake
         run: |
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-arch x86_64 -DMAC=1"
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-arch x86_64 -mfloat-abi=hard -DMAC=1"
           cmake --build build
           ./build/bin/unpack_main
