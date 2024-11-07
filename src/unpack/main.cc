@@ -22,7 +22,7 @@
 #endif
 
 #if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || \
-    defined(__ARM_NEON) || defined(MAC)
+    defined(__ARM_NEON)
 #ifndef __ARM_NEON
 #define __ARM_NEON
 #endif
