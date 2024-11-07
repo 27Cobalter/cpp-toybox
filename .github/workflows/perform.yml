@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: sysctl
-        run: sysctl -a | grep -E '(cpu|hw.optional)'
+        run: sudo sysctl -a | grep -E '(cpu|hw.optional)'
       - name: cmake
         run: |
           cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native"
@@ -22,6 +22,6 @@ jobs:
         run: arch -arch x86_64 sysctl -a | grep -E '(cpu|hw.optional)'
       - name: cmake
         run: |
-          arch -arch x86_64 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          arch -arch x86_64 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-arch x86_64"
           arch -arch x86_64 cmake --build build
           arch -arch x86_64 ./bin/unpack_main
