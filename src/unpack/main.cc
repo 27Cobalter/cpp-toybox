@@ -15,14 +15,14 @@
 #define __SSE42__
 #endif
 
-#if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC)
+#if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || defined(__ARM_NEON)
 #define __ARM_NEON
 #include <arm_neon.h>
 #endif
 
 auto main() -> int {
   constexpr int32_t img_size = 2048 * 2048;
-  constexpr int32_t loop_num = 10000;
+  constexpr int32_t loop_num = 1000;
   // constexpr int32_t loop_num      = 1;
   std::shared_ptr<uint8_t[]> ssp           = std::make_shared<uint8_t[]>(img_size / 2 * 3);
   std::shared_ptr<uint16_t[]> dsp_naive12p = std::make_shared<uint16_t[]>(img_size);
@@ -33,7 +33,8 @@ auto main() -> int {
   std::shared_ptr<uint16_t[]> dsp_avx12    = std::make_shared<uint16_t[]>(img_size);
   std::shared_ptr<uint16_t[]> dsp_neon12p  = std::make_shared<uint16_t[]>(img_size);
   std::shared_ptr<uint16_t[]> dsp_neon12   = std::make_shared<uint16_t[]>(img_size);
-  std::shared_ptr<uint16_t[]> rsp          = std::make_shared<uint16_t[]>(img_size);
+  std::shared_ptr<uint16_t[]> rsp12p       = std::make_shared<uint16_t[]>(img_size);
+  std::shared_ptr<uint16_t[]> rsp12        = std::make_shared<uint16_t[]>(img_size);
   uint8_t* src                             = ssp.get();
   uint16_t* dst_naive12p                   = dsp_naive12p.get();
   uint16_t* dst_naive12                    = dsp_naive12.get();
@@ -43,7 +44,8 @@ auto main() -> int {
   uint16_t* dst_sse12                      = dsp_sse12.get();
   uint16_t* dst_neon12p                    = dsp_neon12p.get();
   uint16_t* dst_neon12                     = dsp_neon12.get();
-  uint16_t* ref                            = rsp.get();
+  uint16_t* ref12p                         = rsp12p.get();
+  uint16_t* ref12                          = rsp12.get();
 
   std::random_device seed;
   std::mt19937 gen(seed());
@@ -55,8 +57,8 @@ auto main() -> int {
       // uint16_t elem2 =(4000 + (2 * i / 3) + 1) & 0x0FFF;
       uint16_t elem1       = static_cast<uint16_t>(gen()) & 0x0FFF;
       uint16_t elem2       = static_cast<uint16_t>(gen()) & 0x0FFF;
-      rsp[(2 * i / 3)]     = elem1;
-      ref[(2 * i / 3) + 1] = elem2;
+      ref12p[(2 * i / 3)]     = elem1;
+      ref12p[(2 * i / 3) + 1] = elem2;
       src[i]               = elem1 & 0xFF;
       src[i + 1]           = (elem2 & 0xF) << 4 | (elem1 & 0xF00) >> 8;
       src[i + 2]           = (elem2 & 0xFF0) >> 4;
@@ -124,7 +126,7 @@ auto main() -> int {
           __m128i c = _mm_srli_epi32(b, 4);
           __m128i d = _mm_blend_epi16(b, c, 0b10101010);
           __m128i e = _mm_and_si128(d, and_mask);
-          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst_avx12p + di), e);
+          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst_sse12p + di), e);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
@@ -152,8 +154,8 @@ auto main() -> int {
           dst_hi.val[0] = vandq_u16(vreinterpretq_u16_u8(lo8.val[1]), and_mask);
           dst_hi.val[1] = vshrq_n_u16(vreinterpretq_u16_u8(hi8.val[1]), 4);
 
-          vst2q_u16(dst_avx12p + di, dst_lo);
-          vst2q_u16(dst_avx12p + di + 16, dst_hi);
+          vst2q_u16(dst_neon12p + di, dst_lo);
+          vst2q_u16(dst_neon12p + di + 16, dst_hi);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
@@ -168,8 +170,10 @@ auto main() -> int {
   { // mono12
     std::cout << "Mono12" << std::endl;
     for (int i = 0; i < img_size / 2 * 3; i += 3) {
-      uint16_t elem1 = ref[(2 * i / 3)];
-      uint16_t elem2 = ref[(2 * i / 3) + 1];
+      uint16_t elem1 = ref12p[(2 * i / 3)];
+      uint16_t elem2 = ref12p[(2 * i / 3) + 1];
+      ref12[(2 * i / 3)] = elem1;
+      ref12[(2 * i / 3) + 1] = elem2;
       src[i]         = (elem1 & 0xFF0) >> 4;
       src[i + 1]     = (elem2 & 0x00F) << 4 | (elem1 & 0x00F);
       src[i + 2]     = (elem2 & 0xFF0) >> 4;
@@ -238,7 +242,7 @@ auto main() -> int {
           __m128i c = _mm_slli_epi16(b, 4);
           __m128i d = _mm_blendv_epi8(b, c, blend_mask);
           __m128i e = _mm_srli_epi16(d, 4);
-          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst_avx12 + di), e);
+          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst_sse12 + di), e);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
@@ -265,8 +269,8 @@ auto main() -> int {
           dst_lo.val[1] = vshrq_n_u16(vreinterpretq_u16_u8(hi8.val[0]), 4);
           dst_hi.val[0] = vshrq_n_u16(vreinterpretq_u16_u8(lo8.val[1]), 4);
           dst_hi.val[1] = vshrq_n_u16(vreinterpretq_u16_u8(hi8.val[1]), 4);
-          vst2q_u16(dst_avx12 + di, dst_lo);
-          vst2q_u16(dst_avx12 + di + 16, dst_hi);
+          vst2q_u16(dst_neon12 + di, dst_lo);
+          vst2q_u16(dst_neon12 + di + 16, dst_hi);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
@@ -279,11 +283,46 @@ auto main() -> int {
   }
 
   for (auto i : std::views::iota(0, img_size)) {
-    if (ref[i] != dst_naive12p[i] || ref[i] != dst_avx12p[i] || ref[i] != dst_naive12[i] ||
-        ref[i] != dst_avx12[i])
-      std::cout << std::format("error dst[{}]=({}, {}, {}, {}, {})", i, ref[i], dst_naive12p[i],
-                               dst_avx12p[i], dst_naive12[i], dst_avx12[i])
-                << std::endl;
+    bool eol = false;
+    if (ref12p[i] != dst_naive12p[i]) {
+      std::cout << std::format("naive12p({}) ", dst_naive12p[i]);
+      eol = true;
+    }
+    if (ref12p[i] != dst_naive12[i]) {
+      std::cout << std::format("naive12({}) ", dst_naive12[i]);
+      eol = true;
+    }
+#if defined(__AVX2__)
+    if (ref12p[i] != dst_avx12p[i]) {
+      std::cout << std::format("avx12p({}) ", dst_avx12p[i]);
+      eol = true;
+    }
+    if (ref12p[i] != dst_avx12[i]) {
+      std::cout << std::format("avx12({}) ", dst_avx12[i]);
+      eol = true;
+    }
+#endif
+#if defined(__SSE42__)
+    if (ref12p[i] != dst_sse12p[i]) {
+      std::cout << std::format("sse12p({}) ", dst_sse12p[i]);
+      eol = true;
+    }
+    if (ref12p[i] != dst_sse12[i]) {
+      std::cout << std::format("sse12({}) ", dst_sse12[i]);
+      eol = true;
+    }
+#endif
+#if defined __ARM_NEON
+    if (ref12p[i] != dst_neon12p[i]) {
+      std::cout << std::format("neon12p({}) ", dst_naive12p[i]);
+      eol = true;
+    }
+    if (ref12p[i] != dst_neon12[i]) {
+      std::cout << std::format("neon12({}) ", dst_neon12[i]);
+      eol = true;
+    }
+#endif
+    if (eol) std::cout << std::endl;
   }
 
   return 0;
