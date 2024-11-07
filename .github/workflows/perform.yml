@@ -3,17 +3,25 @@ name: perform
 on: workflow_dispatch
 
 jobs:
-  perform:
-    strategy:
-      matrix:
-        os: ["ubuntu-24.04", "macos-14"]
-    runs-on: ${{ matrix.os }}
+  ubuntu-run:
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - name: uname
         run: uname -a
       - name: cmake
         run: |
-          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native"
           cmake --build build
           ./bin/unpack_main
+  mac-run:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: uname
+        run: uname -a
+      - name: cmake
+        run: |
+          arch -arch x86_64 cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          arch -arch x86_64 cmake --build build
+          arch -arch x86_64 ./bin/unpack_main
