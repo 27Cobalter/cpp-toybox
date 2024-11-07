@@ -6,7 +6,7 @@
 #include <random>
 #include <ranges>
 
-#if __has_include(<immintrin.h>) && !defined(__ARM_NEON)
+#if __has_include(<immintrin.h>) && !defined(MAC)
 #include <immintrin.h>
 #ifndef __AVX2__
 #define __AVX2__
@@ -21,7 +21,8 @@
 #endif
 #endif
 
-#if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || defined(__ARM_NEON)
+#if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || \
+    defined(__ARM_NEON) || defined(MAC)
 #ifndef __ARM_NEON
 #define __ARM_NEON
 #endif
