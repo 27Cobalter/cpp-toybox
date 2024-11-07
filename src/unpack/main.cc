@@ -6,8 +6,12 @@
 #include <random>
 #include <ranges>
 
+// #define __AVX2__
+#define __SSE42__
 #if defined(__AVX2__)
 #include <immintrin.h>
+#elif defined(__SSE42__)
+#include <smmintrin.h>
 #elif defined(__ARM_NEON)
 #include <arm_neon.h>
 #else
@@ -72,7 +76,7 @@ auto main() -> int {
         int32_t si        = 0;
         int32_t di        = 0;
         int32_t end_count = img_size / 2 * 3;
-#if defined(__AVX2_)
+#if defined(__AVX2__)
         const __m256i shuffle_idx =
           _mm256_setr_epi8(4, 5, 5, 6, 7, 8, 8, 9, 10, 11, 11, 12, 13, 14, 14, 15, 0, 1, 1, 2,
               3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11);
@@ -84,6 +88,18 @@ auto main() -> int {
           __m256i d = _mm256_blend_epi16(b, c, 0b10101010);
           __m256i e = _mm256_and_si256(d, and_mask);
           _mm256_storeu_epi16(dst2 + di, e);
+        }
+#elif defined(__SSE42__)
+        const __m128i shuffle_idx =
+          _mm_setr_epi8(0, 1, 1, 2, 3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11);
+        const __m128i and_mask = _mm_set1_epi16(0x0FFF);
+        for (; si < end_count; si += 12, di += 8) {
+          __m128i a = _mm_loadu_si128(reinterpret_cast<__m128i*>(src + si));
+          __m128i b = _mm_shuffle_epi8(a, shuffle_idx);
+          __m128i c = _mm_srli_epi32(b, 4);
+          __m128i d = _mm_blend_epi16(b, c, 0b10101010);
+          __m128i e = _mm_and_si128(d, and_mask);
+          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst2 + di), e);
         }
 #elif defined(__ARM_NEON)
         uint16x8_t and_mask =  vdupq_n_u16(0x0FFF);
@@ -143,7 +159,7 @@ auto main() -> int {
         int32_t si        = 0;
         int32_t di        = 0;
         int32_t end_count = img_size / 2 * 3;
-#if defined(__AXV2__)
+#if defined(__AVX2__)
         const __m256i shuffle_idx =
           _mm256_setr_epi8(5, 4, 5, 6, 8, 7, 8,9, 11, 10, 11, 12, 14, 13, 14, 15, 1, 0, 1, 2, 4 ,3, 4, 5, 7, 6 ,7, 8, 10, 9, 10, 11);
         const __m256i blend_mask = _mm256_set1_epi32(0x000000FF);
@@ -154,6 +170,18 @@ auto main() -> int {
           __m256i d = _mm256_blendv_epi8(b, c, blend_mask);
           __m256i e = _mm256_srli_epi16(d, 4);
           _mm256_storeu_epi16(dst4 + di, e);
+        }
+#elif defined(__SSE42__)
+        const __m128i shuffle_idx =
+          _mm_setr_epi8(1, 0, 1, 2, 4 ,3, 4, 5, 7, 6 ,7, 8, 10, 9, 10, 11);
+        const __m128i blend_mask = _mm_set1_epi32(0x000000FF);
+        for (; si < end_count; si += 12, di += 8) {
+          __m128i a = _mm_loadu_si128(reinterpret_cast<__m128i*>(src + si));
+          __m128i b = _mm_shuffle_epi8(a, shuffle_idx);
+          __m128i c = _mm_slli_epi16(b, 4);
+          __m128i d = _mm_blendv_epi8(b, c, blend_mask);
+          __m128i e = _mm_srli_epi16(d, 4);
+          _mm_storeu_si128(reinterpret_cast<__m128i*>(dst4 + di), e);
         }
 #elif defined(__ARM_NEON)
         for(; si < end_count; si += 48, di+=32){
