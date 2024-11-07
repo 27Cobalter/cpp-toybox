@@ -8,11 +8,17 @@
 
 #if __has_include(<immintrin.h>) && !defined(__ARM_NEON)
 #include <immintrin.h>
+#ifndef __AVX2__
 #define __AVX2__
+#endif
+#ifndef __SSE42__
 #define __SSE42__
+#endif
 #elif __has_include(<smmintrin.h>)
 #include <smmintrin.h>
+#ifndef __SSE42__
 #define __SSE42__
+#endif
 #endif
 
 #if defined(_M_ARM64) || defined(_M_HYBRID_X86_ARM64) || defined(_M_ARM64EC) || defined(__ARM_NEON)
