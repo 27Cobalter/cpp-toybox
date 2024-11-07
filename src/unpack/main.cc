@@ -103,12 +103,12 @@ auto main() -> int {
                              3, 4, 4, 5, 6, 7, 7, 8, 9, 10, 10, 11);
         const __m256i and_mask = _mm256_set1_epi16(0x0FFF);
         for (; si < end_count; si += 24, di += 16) {
-          __m256i a = _mm256_loadu_epi8(src - 4 + si);
+          __m256i a = _mm256_loadu_si256(reinterpret_cast<__m256i*>(src - 4 + si));
           __m256i b = _mm256_shuffle_epi8(a, shuffle_idx);
           __m256i c = _mm256_srli_epi32(b, 4);
           __m256i d = _mm256_blend_epi16(b, c, 0b10101010);
           __m256i e = _mm256_and_si256(d, and_mask);
-          _mm256_storeu_epi16(dst_avx12p + di, e);
+          _mm256_storeu_si256(reinterpret_cast<__m256i*>(dst_avx12p + di), e);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
@@ -219,12 +219,12 @@ auto main() -> int {
                              4, 3, 4, 5, 7, 6, 7, 8, 10, 9, 10, 11);
         const __m256i blend_mask = _mm256_set1_epi32(0x000000FF);
         for (; si < end_count; si += 24, di += 16) {
-          __m256i a = _mm256_loadu_epi8(src - 4 + si);
+          __m256i a = _mm256_loadu_si256(reinterpret_cast<__m256i*>(src - 4 + si));
           __m256i b = _mm256_shuffle_epi8(a, shuffle_idx);
           __m256i c = _mm256_slli_epi16(b, 4);
           __m256i d = _mm256_blendv_epi8(b, c, blend_mask);
           __m256i e = _mm256_srli_epi16(d, 4);
-          _mm256_storeu_epi16(dst_avx12 + di, e);
+          _mm256_storeu_si256(reinterpret_cast<__m256i*>(dst_avx12 + di), e);
         }
       }
       auto end = std::chrono::high_resolution_clock::now();
