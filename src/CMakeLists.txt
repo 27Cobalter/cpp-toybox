@@ -1,6 +1,7 @@
 if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
 endif()
 add_subdirectory(unpack)
+add_subdirectory(args)
 # add_subdirectory(branch_miss)
 # add_subdirectory(inter_branch)
 # add_subdirectory(stack_hist)
