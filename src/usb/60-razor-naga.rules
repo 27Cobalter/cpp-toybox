@@ -1,0 +1,1 @@
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1532", ATTRS{idProduct}=="0050", SYMLINK+="razor", MODE="0666", TAG+="uaccess"
