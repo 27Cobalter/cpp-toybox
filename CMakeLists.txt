@@ -21,10 +21,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
-# if(UNIX)
-#   # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-#   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64")
-# endif()
+if(UNIX)
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
+endif()
 
 # find_package(OpenCV)
 # if(NOT OpenCV_FOUND)

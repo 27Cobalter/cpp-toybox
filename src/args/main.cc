@@ -3,38 +3,44 @@
 #include <ranges>
 #include <chrono>
 
+#ifdef _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE
+#endif
+
 template <int32_t size>
 struct Test {
   uint8_t data[size];
 };
 
 template <int32_t size>
-__declspec(noinline) int32_t CopyFunc(Test<size> test) {
+NOINLINE int32_t CopyFunc(Test<size> test) {
   return test.data[0];
 }
 
 template <int32_t size>
-__declspec(noinline) int32_t RefFunc(Test<size>& test) {
+NOINLINE int32_t RefFunc(Test<size>& test) {
   return test.data[0];
 }
 
 template <int32_t size>
-__declspec(noinline) int32_t PtrFunc(Test<size>* test) {
+NOINLINE int32_t PtrFunc(Test<size>* test) {
   return test->data[0];
 }
 
 template <int32_t size>
-__declspec(noinline) int32_t ConstCopyFunc(const Test<size> test) {
+NOINLINE int32_t ConstCopyFunc(const Test<size> test) {
   return test.data[0];
 }
 
 template <int32_t size>
-__declspec(noinline) int32_t ConstRefFunc(const Test<size>& test) {
+NOINLINE int32_t ConstRefFunc(const Test<size>& test) {
   return test.data[0];
 }
 
 template <int32_t size>
-__declspec(noinline) int32_t ConstPtrFunc(const Test<size>* test) {
+NOINLINE int32_t ConstPtrFunc(const Test<size>* test) {
   return test->data[0];
 }
 

@@ -21,7 +21,7 @@ private:
 public:
 	ResultC c_;
 	ResultWrapper(ResultC c) : c_(c) {};
-	std::string ToString() { return table[c_]; }
+	std::string ToString() const { return table.at(c_); }
 };
 
 enum Type {
@@ -29,15 +29,15 @@ enum Type {
 	Type_TypeB,
 };
 
-std::ostream& operator<<(std::ostream& os, const ResultC& c)
+std::ostream& operator<<(std::ostream& os, const ResultWrapper& r)
 {
-	os << ResultWrapper(c).ToString();
+	os << r.ToString();
 	return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ResultWrapper& r)
+std::ostream& operator<<(std::ostream& os, const ResultC& c)
 {
-	os << r.c_;
+	os << ResultWrapper(c);
 	return os;
 }
 
