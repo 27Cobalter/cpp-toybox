@@ -5,6 +5,7 @@ endif()
 # add_subdirectory(branch_miss)
 # add_subdirectory(inter_branch)
 # add_subdirectory(stack_hist)
+add_subdirectory(binning)
 
 if(NOT WIN32)
   add_subdirectory(usb)
