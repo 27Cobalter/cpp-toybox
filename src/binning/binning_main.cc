@@ -52,47 +52,62 @@ auto main() -> int {
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<1, 1>(src, dst1x1);
   MEASURE_END();
-  PrintValue<12, 4>(dst1x1);
+  PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<12, 4>(dst2x2);
+  PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<12, 4>(dst4x4);
+  PrintValue<20, 2>(dst4x4);
 
   MEASURE_BEGIN();
   Binning<Impl::SeqRead>::Execute<1, 1>(src, dst1x1);
   MEASURE_END();
-  PrintValue<12, 4>(dst1x1);
+  PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::SeqRead>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<12, 4>(dst2x2);
+  PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::SeqRead>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<12, 4>(dst4x4);
+  PrintValue<20, 2>(dst4x4);
 
   MEASURE_BEGIN();
   Binning<Impl::Avx512>::Execute<1, 1>(src, dst1x1);
   MEASURE_END();
-  PrintValue<12, 4>(dst1x1);
+  PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::Avx512>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<12, 4>(dst2x2);
+  PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::Avx512>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<12, 4>(dst4x4);
+  PrintValue<20, 2>(dst4x4);
+
+  MEASURE_BEGIN();
+  Binning<Impl::Avx512Unroll>::Execute<1, 1>(src, dst1x1);
+  MEASURE_END();
+  PrintValue<20, 2>(dst1x1);
+
+  MEASURE_BEGIN();
+  Binning<Impl::Avx512Unroll>::Execute<2, 2>(src, dst2x2);
+  MEASURE_END();
+  PrintValue<20, 2>(dst2x2);
+
+  MEASURE_BEGIN();
+  Binning<Impl::Avx512Unroll>::Execute<4, 4>(src, dst4x4);
+  MEASURE_END();
+  PrintValue<20, 2>(dst4x4);
 
   // cv::Mat show;
   // cv::resize(src, show, cv::Size(1024, 1024));

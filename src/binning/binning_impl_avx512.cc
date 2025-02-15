@@ -11,7 +11,7 @@
 template void Binning<Impl::Avx512>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
 template void Binning<Impl::Avx512>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
 
-void Print(__m512i vec) {
+inline void Print(__m512i vec) {
   std::vector<uint16_t> a(32);
   _mm512_storeu_si512(a.data(), vec);
   std::print("[");
