@@ -15,6 +15,11 @@ void Binning<Impl::Avx512UnrollAll>::Execute(const cv::Mat& src, cv::Mat& dst, u
 }
 
 template <>
+template <uint32_t BINNING_X, uint32_t BINNING_Y>
+void Binning<Impl::Avx512UnrollAll>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
+}
+
+template <>
 template <>
 void Binning<Impl::Avx512UnrollAll>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols / BINNING_X == dst.cols);
