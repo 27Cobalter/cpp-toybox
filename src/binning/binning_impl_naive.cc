@@ -7,12 +7,12 @@
 
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Naive>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
-template void Binning<Impl::Naive>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::Naive>::Execute_Impl<2, 2>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::Naive>::Execute_Impl<4, 4>(const cv::Mat&, cv::Mat&);
 
 template <>
 template <>
-void Binning<Impl::Naive>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Naive>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols / BINNING_X == dst.cols);
   assert(src.rows / BINNING_Y == dst.rows);
   assert(src.type() == CV_16UC1);
@@ -22,7 +22,7 @@ void Binning<Impl::Naive>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
 
 template <>
 template <uint32_t BINNING_X, uint32_t BINNING_Y>
-void Binning<Impl::Naive>::Execute(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Naive>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
   static_assert(std::has_single_bit(BINNING_X));
   static_assert(std::has_single_bit(BINNING_Y));
 

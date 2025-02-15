@@ -18,7 +18,7 @@ inline void Print(__m512i vec) {
 
 template <>
 template <>
-void Binning<Impl::Avx512UnrollAll>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols / BINNING_X == dst.cols);
   assert(src.rows / BINNING_Y == dst.rows);
   assert(src.type() == CV_16UC1);
@@ -34,7 +34,7 @@ void Binning<Impl::Avx512UnrollAll>::Execute<1, 1>(const cv::Mat& src, cv::Mat& 
 
 template <>
 template <>
-void Binning<Impl::Avx512UnrollAll>::Execute<2, 2>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute_Impl<2, 2>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 2;
   constexpr uint32_t BINNING_Y = 2;
   static_assert(std::has_single_bit(BINNING_X));
@@ -85,7 +85,7 @@ void Binning<Impl::Avx512UnrollAll>::Execute<2, 2>(const cv::Mat& src, cv::Mat& 
 
 template <>
 template <>
-void Binning<Impl::Avx512UnrollAll>::Execute<4, 4>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute_Impl<4, 4>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 4;
   constexpr uint32_t BINNING_Y = 4;
   static_assert(std::has_single_bit(BINNING_X));

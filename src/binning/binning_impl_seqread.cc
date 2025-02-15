@@ -8,12 +8,12 @@
 
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::SeqRead>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
-template void Binning<Impl::SeqRead>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::SeqRead>::Execute_Impl<2, 2>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::SeqRead>::Execute_Impl<4, 4>(const cv::Mat&, cv::Mat&);
 
 template <>
 template <>
-void Binning<Impl::SeqRead>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::SeqRead>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols)) {
       dst.ptr<uint16_t>(y)[x] = src.ptr<uint16_t>(y)[x];
@@ -23,7 +23,7 @@ void Binning<Impl::SeqRead>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
 
 template <>
 template <uint32_t BINNING_X, uint32_t BINNING_Y>
-void Binning<Impl::SeqRead>::Execute(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::SeqRead>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
   static_assert(std::has_single_bit(BINNING_X));
   static_assert(std::has_single_bit(BINNING_Y));
 

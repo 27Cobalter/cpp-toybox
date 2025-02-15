@@ -8,8 +8,8 @@
 #include <immintrin.h>
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Avx512>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
-template void Binning<Impl::Avx512>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::Avx512>::Execute_Impl<2, 2>(const cv::Mat&, cv::Mat&);
+template void Binning<Impl::Avx512>::Execute_Impl<4, 4>(const cv::Mat&, cv::Mat&);
 
 inline void Print(__m512i vec) {
   std::vector<uint16_t> a(32);
@@ -21,7 +21,7 @@ inline void Print(__m512i vec) {
 
 template <>
 template <>
-void Binning<Impl::Avx512>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols / BINNING_X == dst.cols);
   assert(src.rows / BINNING_Y == dst.rows);
   assert(src.type() == CV_16UC1);
@@ -37,7 +37,7 @@ void Binning<Impl::Avx512>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
 
 template <>
 template <uint32_t BINNING_X, uint32_t BINNING_Y>
-void Binning<Impl::Avx512>::Execute(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
   static_assert(std::has_single_bit(BINNING_X));
   static_assert(std::has_single_bit(BINNING_Y));
 
