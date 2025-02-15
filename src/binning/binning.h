@@ -5,7 +5,15 @@
 #include <opencv4/opencv2/core/types.hpp>
 #include <opencv4/opencv2/core/core.hpp>
 
-enum class Impl { Naive, SeqRead, Avx512, Avx512Unroll };
+enum class Impl {
+  Naive,
+  SeqRead,
+  Avx512,
+  Avx512UnrollAll,
+  Avx512UnrollX,
+  Avx512Seq,
+  Avx512SeqBuffer
+};
 
 template <Impl IMPL>
 class Binning {

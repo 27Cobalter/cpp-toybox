@@ -12,13 +12,13 @@ inline void Print(__m512i vec) {
   std::vector<uint16_t> a(32);
   _mm512_storeu_si512(a.data(), vec);
   std::print("[");
-  for (auto elem : a) std::print("{:4d}, ", elem);
+  for (auto elem : a) std::print("{:5d},", elem);
   std::println("]");
 }
 
 template <>
 template <>
-void Binning<Impl::Avx512Unroll>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols / BINNING_X == dst.cols);
   assert(src.rows / BINNING_Y == dst.rows);
   assert(src.type() == CV_16UC1);
@@ -34,7 +34,7 @@ void Binning<Impl::Avx512Unroll>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst
 
 template <>
 template <>
-void Binning<Impl::Avx512Unroll>::Execute<2, 2>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute<2, 2>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 2;
   constexpr uint32_t BINNING_Y = 2;
   static_assert(std::has_single_bit(BINNING_X));
@@ -85,7 +85,7 @@ void Binning<Impl::Avx512Unroll>::Execute<2, 2>(const cv::Mat& src, cv::Mat& dst
 
 template <>
 template <>
-void Binning<Impl::Avx512Unroll>::Execute<4, 4>(const cv::Mat& src, cv::Mat& dst) {
+void Binning<Impl::Avx512UnrollAll>::Execute<4, 4>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 4;
   constexpr uint32_t BINNING_Y = 4;
   static_assert(std::has_single_bit(BINNING_X));
@@ -115,7 +115,7 @@ void Binning<Impl::Avx512Unroll>::Execute<4, 4>(const cv::Mat& src, cv::Mat& dst
 
     constexpr __mmask32 mask2 = 0b01010101010101010101010101010101;
     constexpr __mmask32 mask4 = 0b00010001000100010001000100010001;
-    for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride1)) {
+    for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride1 << 2)) {
       const uint16_t* sptryx = src.ptr<uint16_t>(y + 0) + x;
       __m512i y0_0           = _mm512_loadu_si512(sptryx);
       __m512i y0_1           = _mm512_loadu_si512(sptryx + stride1);

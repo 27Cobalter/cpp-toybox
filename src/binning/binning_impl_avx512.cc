@@ -15,7 +15,7 @@ inline void Print(__m512i vec) {
   std::vector<uint16_t> a(32);
   _mm512_storeu_si512(a.data(), vec);
   std::print("[");
-  for (auto elem : a) std::print("{:5d}, ", elem);
+  for (auto elem : a) std::print("{:5d},", elem);
   std::println("]");
 }
 
