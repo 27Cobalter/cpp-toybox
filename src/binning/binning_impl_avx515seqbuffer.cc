@@ -9,15 +9,10 @@
 #include <omp.h>
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Avx512SeqBuffer>::Execute_Impl<2, 2>(const cv::Mat&, cv::Mat&);
-template void Binning<Impl::Avx512SeqBuffer>::Execute_Impl<4, 4>(const cv::Mat&, cv::Mat&);
-
-inline void Print(__m512i vec) {
-  std::vector<uint16_t> a(32);
-  _mm512_storeu_si512(a.data(), vec);
-  std::print("[");
-  for (auto elem : a) std::print("{:5d},", elem);
-  std::println("]");
+template <>
+void Binning<Impl::Avx512SeqBuffer>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
+                                   uint32_t binning_y) {
+  Execute_Impl(binning_x, binning_y, src, dst);
 }
 
 template <>

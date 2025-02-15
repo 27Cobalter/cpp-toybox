@@ -7,8 +7,11 @@
 
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Naive>::Execute_Impl<2, 2>(const cv::Mat&, cv::Mat&);
-template void Binning<Impl::Naive>::Execute_Impl<4, 4>(const cv::Mat&, cv::Mat&);
+template <>
+void Binning<Impl::Naive>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
+                                   uint32_t binning_y) {
+  Execute_Impl(binning_x, binning_y, src, dst);
+}
 
 template <>
 template <>

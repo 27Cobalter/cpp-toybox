@@ -8,12 +8,10 @@
 #include <immintrin.h>
 #include <opencv4/opencv2/core/core.hpp>
 
-inline void Print(__m512i vec) {
-  std::vector<uint16_t> a(32);
-  _mm512_storeu_si512(a.data(), vec);
-  std::print("[");
-  for (auto elem : a) std::print("{:5d},", elem);
-  std::println("]");
+template <>
+void Binning<Impl::Avx512UnrollAll>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
+                                   uint32_t binning_y) {
+  Execute_Impl(binning_x, binning_y, src, dst);
 }
 
 template <>
