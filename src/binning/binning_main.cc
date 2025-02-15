@@ -11,13 +11,13 @@
 
 template <int32_t X, int32_t Y>
 void PrintValue(const cv::Mat& src) {
+  std::println("{}x{}", X, Y);
   for (auto y : std::views::iota(0, Y)) {
     for (auto x : std::views::iota(0, X)) {
       std::print("{:5d}, ", src.ptr<uint16_t>(y)[x]);
     }
     std::println("");
   }
-  std::println("");
 }
 
 auto main() -> int {
@@ -33,14 +33,17 @@ auto main() -> int {
   std::chrono::high_resolution_clock::time_point start, end;
 
 #define MEASURE_BEGIN()                                           \
+  std::println("");                                               \
   std::fill(dst1x1.begin<uint16_t>(), dst1x1.end<uint16_t>(), 0); \
   std::fill(dst2x2.begin<uint16_t>(), dst2x2.end<uint16_t>(), 0); \
   std::fill(dst4x4.begin<uint16_t>(), dst4x4.end<uint16_t>(), 0); \
   start = std::chrono::high_resolution_clock::now();
-#define MEASURE_END()                              \
-  end = std::chrono::high_resolution_clock::now(); \
-  std::println("{}",                               \
-               std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+#define MEASURE_END()                                                                         \
+  end = std::chrono::high_resolution_clock::now();                                            \
+  std::println(                                                                               \
+      "{}", static_cast<double>(                                                              \
+                std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) / \
+                1000);
 
   cv::Mat dst1x1 = cv::Mat(src.size() / 1, src.type());
   cv::Mat dst2x2 = cv::Mat(src.size() / 2, src.type());
@@ -49,42 +52,47 @@ auto main() -> int {
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<1, 1>(src, dst1x1);
   MEASURE_END();
-  PrintValue<8, 8>(dst1x1);
+  PrintValue<12, 4>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<4, 4>(dst2x2);
+  PrintValue<12, 4>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::Naive>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<2, 2>(dst4x4);
+  PrintValue<12, 4>(dst4x4);
 
-  // MEASURE_BEGIN();
-  // Binning<Impl::SeqRead>::Execute<1, 1>(src, dst1x1);
-  // MEASURE_END();
-  // PrintValue<8, 8>(dst1x1);
+  MEASURE_BEGIN();
+  Binning<Impl::SeqRead>::Execute<1, 1>(src, dst1x1);
+  MEASURE_END();
+  PrintValue<12, 4>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::SeqRead>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<4, 4>(dst2x2);
+  PrintValue<12, 4>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::SeqRead>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<2, 2>(dst4x4);
+  PrintValue<12, 4>(dst4x4);
+
+  MEASURE_BEGIN();
+  Binning<Impl::Avx512>::Execute<1, 1>(src, dst1x1);
+  MEASURE_END();
+  PrintValue<12, 4>(dst1x1);
 
   MEASURE_BEGIN();
   Binning<Impl::Avx512>::Execute<2, 2>(src, dst2x2);
   MEASURE_END();
-  PrintValue<4, 4>(dst2x2);
+  PrintValue<12, 4>(dst2x2);
 
   MEASURE_BEGIN();
   Binning<Impl::Avx512>::Execute<4, 4>(src, dst4x4);
   MEASURE_END();
-  PrintValue<8, 8>(dst4x4);
+  PrintValue<12, 4>(dst4x4);
 
   // cv::Mat show;
   // cv::resize(src, show, cv::Size(1024, 1024));

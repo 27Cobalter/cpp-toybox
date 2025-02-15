@@ -8,7 +8,6 @@
 #include <immintrin.h>
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Avx512>::Execute<1, 1>(const cv::Mat&, cv::Mat&);
 template void Binning<Impl::Avx512>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
 template void Binning<Impl::Avx512>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
 
@@ -16,8 +15,24 @@ void Print(__m512i vec) {
   std::vector<uint16_t> a(32);
   _mm512_storeu_si512(a.data(), vec);
   std::print("[");
-  for (auto elem : a) std::print("{}, ", elem);
+  for (auto elem : a) std::print("{:5d}, ", elem);
   std::println("]");
+}
+
+template <>
+template <>
+void Binning<Impl::Avx512>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+  assert(src.cols / BINNING_X == dst.cols);
+  assert(src.rows / BINNING_Y == dst.rows);
+  assert(src.type() == CV_16UC1);
+  assert(src.type() == CV_16UC1);
+  for (auto y : std::views::iota(0, src.rows)) {
+    for (auto x :
+         std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x,
+                          _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+    }
+  }
 }
 
 template <>
@@ -50,6 +65,7 @@ void Binning<Impl::Avx512>::Execute(const cv::Mat& src, cv::Mat& dst) {
       y0                     = _mm512_adds_epu16(y0, y0_);
       y1                     = _mm512_adds_epu16(y1, y1_);
       y0                     = _mm512_maskz_adds_epu16(mask2, y0, y1);
+
       if constexpr (BINNING_Y == 4) {
         __m512i y2  = _mm512_loadu_si512(sptryx + src.step1() * 2);
         __m512i y3  = _mm512_loadu_si512(sptryx + src.step1() * 3);
@@ -60,23 +76,13 @@ void Binning<Impl::Avx512>::Execute(const cv::Mat& src, cv::Mat& dst) {
         y2          = _mm512_maskz_adds_epu16(mask2, y2, y3);
         y0          = _mm512_maskz_adds_epu16(mask2, y0, y2);
       }
-      if constexpr (BINNING_X == 4) {
-        y0 = _mm512_maskz_adds_epu16(mask4, y0, _mm512_srli_epi64(y0, 32));
-      }
-      __m512i p0 = _mm512_packus_epi32(y0, y0);
-      __mmask16 store_mask;
+
       if constexpr (BINNING_X == 2) {
-        store_mask = 0b0011001100110011;
-      } else if constexpr (BINNING_X == 4) {
-        p0         = _mm512_packus_epi32(p0, p0);
-        store_mask = 0b0001000100010001;
+        _mm512_mask_cvtepi32_storeu_epi16(dptry + (x >> shift_x), 0xFFFF, y0);
+      } else if (BINNING_X == 4) {
+        y0 = _mm512_maskz_adds_epu16(mask4, y0, _mm512_srli_epi64(y0, 32));
+        _mm512_mask_cvtepi64_storeu_epi16(dptry + (x >> shift_x), 0xFF, y0);
       }
-      // if (y == 0 && x == 0) {
-      //   Print(y0);
-      //   Print(p0);
-      // }
-      _mm512_mask_compressstoreu_epi32(dptry + (x >> shift_x), store_mask , p0);
-      // dptry[x >> shift_x] = temp;
     }
   }
 }

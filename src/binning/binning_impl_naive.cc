@@ -7,9 +7,18 @@
 
 #include <opencv4/opencv2/core/core.hpp>
 
-template void Binning<Impl::Naive>::Execute<1, 1>(const cv::Mat&, cv::Mat&);
 template void Binning<Impl::Naive>::Execute<2, 2>(const cv::Mat&, cv::Mat&);
 template void Binning<Impl::Naive>::Execute<4, 4>(const cv::Mat&, cv::Mat&);
+
+template <>
+template <>
+void Binning<Impl::Naive>::Execute<1, 1>(const cv::Mat& src, cv::Mat& dst) {
+  assert(src.cols / BINNING_X == dst.cols);
+  assert(src.rows / BINNING_Y == dst.rows);
+  assert(src.type() == CV_16UC1);
+  assert(src.type() == CV_16UC1);
+  std::memcpy(dst.ptr<uint16_t>(), src.ptr<uint16_t>(), src.total() * sizeof(uint16_t));
+}
 
 template <>
 template <uint32_t BINNING_X, uint32_t BINNING_Y>
