@@ -7,6 +7,7 @@
 #include <opencv4/opencv2/core/types.hpp>
 
 enum class Impl {
+  None,
   Naive,
   SeqRead,
   Avx512,
@@ -20,6 +21,7 @@ class BinningBase {
 public:
   virtual void Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
                        uint32_t binning_y) = 0;
+  virtual Impl GetImpl()                   = 0;
 };
 
 template <Impl IMPL>
@@ -31,11 +33,11 @@ private:
   void Execute_Impl(const cv::Mat& src, cv::Mat& dst);
 
 public:
-  static const Impl impl = IMPL;
-
-public:
   void Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
                uint32_t binning_y) override;
+  Impl GetImpl() override {
+    return IMPL;
+  };
 };
 
 template <Impl IMPL>

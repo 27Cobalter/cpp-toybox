@@ -9,32 +9,66 @@
 #include "binning.h"
 
 enum class TestData { max, seq, rand };
-std::ostream& operator<<(std::ostream& os, const TestData& t) {
-  std::string data;
+
+void PrintTo(const TestData& t, std::ostream* os) {
   switch (t) {
     case (TestData::max):
-      os << "TestData::max";
+      *os << "TestData::max";
       break;
     case (TestData::seq):
-      os << "TestData::seq";
+      *os << "TestData::seq";
       break;
     case (TestData::rand):
-      os << "TestData::rand";
+      *os << "TestData::rand";
       break;
     default:
       assert(false);
-      os << "Unknown";
+      *os << "Unknown";
+      break;
   }
-  return os;
 }
 
-auto TESTIMPL  = ::testing::Values(
-  std::make_shared<Binning<Impl::SeqRead>>(),
-  std::make_shared<Binning<Impl::Avx512>>(),
-  std::make_shared<Binning<Impl::Avx512UnrollX>>(),
-  std::make_shared<Binning<Impl::Avx512Seq>>(),
-  std::make_shared<Binning<Impl::Avx512SeqBuffer>>()
-);
+void PrintTo(const Impl& impl, std::ostream* os) {
+  switch (impl) {
+    case (Impl::None):
+      *os << "Impl::None";
+      break;
+    case (Impl::Naive):
+      *os << "Impl::Naive";
+      break;
+    case (Impl::SeqRead):
+      *os << "Impl::SeqRead";
+      break;
+    case (Impl::Avx512):
+      *os << "Impl::Avx512";
+      break;
+    case (Impl::Avx512UnrollAll):
+      *os << "Impl::Avx512UnrollAll";
+      break;
+    case (Impl::Avx512UnrollX):
+      *os << "Impl::Avx512UnrollX";
+      break;
+    case (Impl::Avx512Seq):
+      *os << "Impl::Avx512Seq";
+      break;
+    case (Impl::Avx512SeqBuffer):
+      *os << "Impl::Avx512SeqBuffer";
+      break;
+    default:
+      assert(false);
+      *os << "Unknown";
+  }
+}
+
+void PrintTo(const std::shared_ptr<BinningBase>& binning, std::ostream* os) {
+  PrintTo(binning->GetImpl(), os);
+}
+
+auto TESTIMPL  = ::testing::Values(std::make_shared<Binning<Impl::SeqRead>>(),
+                                   std::make_shared<Binning<Impl::Avx512>>(),
+                                   std::make_shared<Binning<Impl::Avx512UnrollX>>(),
+                                   std::make_shared<Binning<Impl::Avx512Seq>>(),
+                                   std::make_shared<Binning<Impl::Avx512SeqBuffer>>());
 auto BINNING_X = ::testing::Values(1, 2, 4);
 auto BINNING_Y = ::testing::Values(1, 2, 4);
 auto TESTDATA  = ::testing::Values(TestData::max, TestData::seq, TestData::rand);
@@ -78,7 +112,7 @@ cv::Mat CreateTestData(TestData pattern) {
 }
 
 TEST_P(BINNING_TEST, Normal) {
-  const auto params = GetParam();
+  const auto params       = GetParam();
   const auto impl         = std::get<0>(params);
   const auto binning_x    = std::get<1>(params);
   const auto binning_y    = std::get<2>(params);
