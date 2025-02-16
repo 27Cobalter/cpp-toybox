@@ -13,6 +13,7 @@ enum class Impl {
   Avx512,
   Avx512UnrollAll,
   Avx512UnrollX,
+  Avx512UnrollLoad,
   Avx512Seq,
   Avx512SeqBuffer
 };

@@ -32,7 +32,7 @@ auto main() -> int {
   // PrintValue<8, 8>(src);
   std::chrono::high_resolution_clock::time_point start, end;
 
-  constexpr int32_t loop_time = 1000;
+  constexpr int32_t loop_time = 10;
 #define MEASURE_BEGIN()                                           \
   std::fill(dst1x1.begin<uint16_t>(), dst1x1.end<uint16_t>(), 0); \
   std::fill(dst2x2.begin<uint16_t>(), dst2x2.end<uint16_t>(), 0); \
@@ -57,104 +57,96 @@ auto main() -> int {
   MEASURE_BEGIN();
   naive.Execute(src, dst1x1, 1, 1);
   MEASURE_END();
-  // PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   naive.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   naive.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   std::println("SeqRead");
   Binning<Impl::SeqRead> seqread;
   MEASURE_BEGIN();
   seqread.Execute(src, dst1x1, 1, 1);
   MEASURE_END();
-  // PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   seqread.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   seqread.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   std::println("Avx512");
   Binning<Impl::Avx512> avx512;
   MEASURE_BEGIN();
   avx512.Execute(src, dst1x1, 1, 1);
   MEASURE_END();
-  // PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   avx512.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   avx512.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   std::println("Avx512UnrollAll");
   Binning<Impl::Avx512UnrollAll> unrollall;
   MEASURE_BEGIN();
   unrollall.Execute(src, dst1x1, 1, 1);
   MEASURE_END();
-  // PrintValue<20, 2>(dst1x1);
 
   MEASURE_BEGIN();
   unrollall.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   unrollall.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   std::println("Avx512UnrollX");
   Binning<Impl::Avx512UnrollX> unrollx;
   MEASURE_BEGIN();
   unrollx.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   unrollx.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
+
+  std::println("Avx512UnrollLoad");
+  Binning<Impl::Avx512UnrollLoad> unrollload;
+  MEASURE_BEGIN();
+  unrollload.Execute(src, dst2x2, 2, 2);
+  MEASURE_END();
+
+  MEASURE_BEGIN();
+  unrollload.Execute(src, dst4x4, 4, 4);
+  MEASURE_END();
 
   std::println("Avx512Seq");
   Binning<Impl::Avx512Seq> avx512seq;
   MEASURE_BEGIN();
   avx512seq.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   avx512seq.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   std::println("Avx512SeqBuffer");
   Binning<Impl::Avx512SeqBuffer> avx512seqbuffer;
   MEASURE_BEGIN();
   avx512seqbuffer.Execute(src, dst2x2, 2, 2);
   MEASURE_END();
-  // PrintValue<20, 2>(dst2x2);
 
   MEASURE_BEGIN();
   avx512seqbuffer.Execute(src, dst4x4, 4, 4);
   MEASURE_END();
-  // PrintValue<20, 2>(dst4x4);
 
   return 0;
 }

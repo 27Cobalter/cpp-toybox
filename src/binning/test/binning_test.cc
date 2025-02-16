@@ -48,6 +48,9 @@ void PrintTo(const Impl& impl, std::ostream* os) {
     case (Impl::Avx512UnrollX):
       *os << "Impl::Avx512UnrollX";
       break;
+    case (Impl::Avx512UnrollLoad):
+      *os << "Impl::Avx512UnrollLoad";
+      break;
     case (Impl::Avx512Seq):
       *os << "Impl::Avx512Seq";
       break;
@@ -66,7 +69,8 @@ void PrintTo(const std::shared_ptr<BinningBase>& binning, std::ostream* os) {
 
 auto TESTIMPL  = ::testing::Values(std::make_shared<Binning<Impl::SeqRead>>(),
                                    // std::make_shared<Binning<Impl::Avx512>>(),
-                                   std::make_shared<Binning<Impl::Avx512UnrollX>>()
+                                   std::make_shared<Binning<Impl::Avx512UnrollX>>(),
+                                   std::make_shared<Binning<Impl::Avx512UnrollLoad>>()
                                    // std::make_shared<Binning<Impl::Avx512Seq>>(),
                                    // std::make_shared<Binning<Impl::Avx512SeqBuffer>>()
  );
