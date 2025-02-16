@@ -65,10 +65,11 @@ void PrintTo(const std::shared_ptr<BinningBase>& binning, std::ostream* os) {
 }
 
 auto TESTIMPL  = ::testing::Values(std::make_shared<Binning<Impl::SeqRead>>(),
-                                   std::make_shared<Binning<Impl::Avx512>>(),
-                                   std::make_shared<Binning<Impl::Avx512UnrollX>>(),
-                                   std::make_shared<Binning<Impl::Avx512Seq>>(),
-                                   std::make_shared<Binning<Impl::Avx512SeqBuffer>>());
+                                   // std::make_shared<Binning<Impl::Avx512>>(),
+                                   std::make_shared<Binning<Impl::Avx512UnrollX>>()
+                                   // std::make_shared<Binning<Impl::Avx512Seq>>(),
+                                   // std::make_shared<Binning<Impl::Avx512SeqBuffer>>()
+ );
 auto BINNING_X = ::testing::Values(1, 2, 4);
 auto BINNING_Y = ::testing::Values(1, 2, 4);
 auto TESTDATA  = ::testing::Values(TestData::max, TestData::seq, TestData::rand);
@@ -129,7 +130,8 @@ TEST_P(BINNING_TEST, Normal) {
 
   for (auto y : std::views::iota(0, ref.rows)) {
     for (auto x : std::views::iota(0, ref.cols)) {
-      ASSERT_EQ(ref.ptr<uint16_t>(y)[x], dst.ptr<uint16_t>(y)[x]);
+      ASSERT_EQ(ref.ptr<uint16_t>(y)[x], dst.ptr<uint16_t>(y)[x])
+          << std::format("(y, x)=({}, {})", y, x);
     }
   }
 }

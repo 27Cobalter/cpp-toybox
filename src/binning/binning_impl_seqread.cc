@@ -47,7 +47,8 @@ void Binning<Impl::SeqRead>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
         uint16_t* dptryx = dptry + (x >> shift_x);
         *dptryx          = 0;
         for (auto x_b : std::views::iota(0u, BINNING_X)) {
-          *dptryx += sptry[x + x_b];
+          uint32_t tmp = *dptryx + sptry[x + x_b];
+          *dptryx      = std::min<uint32_t>(tmp, std::numeric_limits<uint16_t>::max());
         }
       }
     }
@@ -57,7 +58,8 @@ void Binning<Impl::SeqRead>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
         for (auto x : std::views::iota(0, src.cols) | std::views::stride(BINNING_X)) {
           uint16_t* dptryx = dptry + (x >> shift_x);
           for (auto x_b : std::views::iota(0u, BINNING_X)) {
-            *dptryx += sptry[x + x_b];
+            uint32_t tmp = *dptryx + sptry[x + x_b];
+            *dptryx      = std::min<uint32_t>(tmp, std::numeric_limits<uint16_t>::max());
           }
         }
       }

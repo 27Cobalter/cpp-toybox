@@ -10,7 +10,7 @@
 
 template <>
 void Binning<Impl::Avx512UnrollX>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
-                                   uint32_t binning_y) {
+                                           uint32_t binning_y) {
   Execute_Impl(binning_x, binning_y, src, dst);
 }
 
@@ -59,50 +59,67 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst
 
     constexpr int32_t stride = 512 / 8 / sizeof(uint16_t);
 
-    constexpr __mmask32 mask2 = 0b01010101010101010101010101010101;
-    constexpr __mmask32 mask4 = 0b00010001000100010001000100010001;
+    __mmask32 mask;
+    if constexpr (BINNING_X == 1) {
+      mask = 0b11111111111111111111111111111111;
+    } else if constexpr (BINNING_X == 2) {
+      mask = 0b01010101010101010101010101010101;
+    } else if constexpr (BINNING_X == 4) {
+      mask = 0b01010101010101010101010101010101;
+    }
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride << 1)) {
       const uint16_t* sptryx = src.ptr<uint16_t>(y + 0) + x;
       __m512i y0_0           = _mm512_loadu_si512(sptryx);
       __m512i y0_1           = _mm512_loadu_si512(sptryx + stride);
-      __m512i y1_0           = _mm512_loadu_si512(sptryx + src.step1());
-      __m512i y1_1           = _mm512_loadu_si512(sptryx + src.step1() + stride);
-      __m512i y0_0s          = _mm512_srli_epi64(y0_0, 16);
-      __m512i y0_1s          = _mm512_srli_epi64(y0_1, 16);
-      __m512i y1_0s          = _mm512_srli_epi64(y1_0, 16);
-      __m512i y1_1s          = _mm512_srli_epi64(y1_1, 16);
-      y0_0                   = _mm512_adds_epu16(y0_0, y0_0s);
-      y0_1                   = _mm512_adds_epu16(y0_1, y0_1s);
-      y1_0                   = _mm512_adds_epu16(y1_0, y1_0s);
-      y1_1                   = _mm512_adds_epu16(y1_1, y1_1s);
-      y0_0                   = _mm512_maskz_adds_epu16(mask2, y0_0, y1_0);
-      y0_1                   = _mm512_maskz_adds_epu16(mask2, y0_1, y1_1);
-
-      if constexpr (BINNING_Y == 4) {
-        __m512i y2_0  = _mm512_loadu_si512(sptryx + src.step1() * 2);
-        __m512i y2_1  = _mm512_loadu_si512(sptryx + src.step1() * 2 + stride);
-        __m512i y3_0  = _mm512_loadu_si512(sptryx + src.step1() * 3);
-        __m512i y3_1  = _mm512_loadu_si512(sptryx + src.step1() * 3 + stride);
-        __m512i y2_0s = _mm512_srli_epi64(y2_0, 16);
-        __m512i y2_1s = _mm512_srli_epi64(y2_1, 16);
-        __m512i y3_0s = _mm512_srli_epi64(y3_0, 16);
-        __m512i y3_1s = _mm512_srli_epi64(y3_1, 16);
-        y2_0          = _mm512_adds_epu16(y2_0, y2_0s);
-        y2_1          = _mm512_adds_epu16(y2_1, y2_1s);
-        y3_0          = _mm512_adds_epu16(y3_0, y3_0s);
-        y3_1          = _mm512_adds_epu16(y3_1, y3_1s);
-        y2_0          = _mm512_maskz_adds_epu16(mask2, y2_0, y3_0);
-        y2_1          = _mm512_maskz_adds_epu16(mask2, y2_1, y3_1);
-        y0_0          = _mm512_maskz_adds_epu16(mask2, y0_0, y2_0);
-        y0_1          = _mm512_maskz_adds_epu16(mask2, y0_1, y2_1);
+      if constexpr (BINNING_X >= 2) {
+        __m512i y0_0s = _mm512_srli_epi64(y0_0, 16);
+        __m512i y0_1s = _mm512_srli_epi64(y0_1, 16);
+        y0_0          = _mm512_adds_epu16(y0_0, y0_0s);
+        y0_1          = _mm512_adds_epu16(y0_1, y0_1s);
+      }
+      if constexpr (BINNING_Y >= 2) {
+        __m512i y1_0 = _mm512_loadu_si512(sptryx + src.step1());
+        __m512i y1_1 = _mm512_loadu_si512(sptryx + src.step1() + stride);
+        if constexpr (BINNING_X >= 2) {
+          __m512i y1_0s = _mm512_srli_epi64(y1_0, 16);
+          __m512i y1_1s = _mm512_srli_epi64(y1_1, 16);
+          y1_0          = _mm512_adds_epu16(y1_0, y1_0s);
+          y1_1          = _mm512_adds_epu16(y1_1, y1_1s);
+        }
+        y0_0 = _mm512_maskz_adds_epu16(mask, y0_0, y1_0);
+        y0_1 = _mm512_maskz_adds_epu16(mask, y0_1, y1_1);
       }
 
-      if constexpr (BINNING_X == 2) {
+      if constexpr (BINNING_Y == 4) {
+        __m512i y2_0 = _mm512_loadu_si512(sptryx + src.step1() * 2);
+        __m512i y2_1 = _mm512_loadu_si512(sptryx + src.step1() * 2 + stride);
+        __m512i y3_0 = _mm512_loadu_si512(sptryx + src.step1() * 3);
+        __m512i y3_1 = _mm512_loadu_si512(sptryx + src.step1() * 3 + stride);
+        if constexpr (BINNING_X >= 2) {
+          __m512i y2_0s = _mm512_srli_epi64(y2_0, 16);
+          __m512i y2_1s = _mm512_srli_epi64(y2_1, 16);
+          __m512i y3_0s = _mm512_srli_epi64(y3_0, 16);
+          __m512i y3_1s = _mm512_srli_epi64(y3_1, 16);
+          y2_0          = _mm512_adds_epu16(y2_0, y2_0s);
+          y2_1          = _mm512_adds_epu16(y2_1, y2_1s);
+          y3_0          = _mm512_adds_epu16(y3_0, y3_0s);
+          y3_1          = _mm512_adds_epu16(y3_1, y3_1s);
+        }
+        y2_0 = _mm512_maskz_adds_epu16(mask, y2_0, y3_0);
+        y2_1 = _mm512_maskz_adds_epu16(mask, y2_1, y3_1);
+        y0_0 = _mm512_maskz_adds_epu16(mask, y0_0, y2_0);
+        y0_1 = _mm512_maskz_adds_epu16(mask, y0_1, y2_1);
+      }
+
+      if constexpr (BINNING_X == 1) {
+        _mm512_storeu_si512(dptry + x, y0_0);
+        _mm512_storeu_si512(dptry + x + stride, y0_1);
+      } else if constexpr (BINNING_X == 2) {
         y0_0 = _mm512_permutex2var_epi16(y0_0, idx, y0_1);
         _mm512_storeu_si512(dptry + (x >> shift_x), y0_0);
       } else if (BINNING_X == 4) {
-        y0_0 = _mm512_maskz_adds_epu16(mask4, y0_0, _mm512_srli_epi64(y0_0, 32));
-        y0_1 = _mm512_maskz_adds_epu16(mask4, y0_1, _mm512_srli_epi64(y0_1, 32));
+        y0_0 = _mm512_maskz_adds_epu16(mask, y0_0, _mm512_srli_epi64(y0_0, 32));
+        y0_1 = _mm512_maskz_adds_epu16(mask, y0_1, _mm512_srli_epi64(y0_1, 32));
         y0_0 = _mm512_permutex2var_epi16(y0_0, idx, y0_1);
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(dptry + (x >> shift_x)),
                             _mm512_castsi512_si256(y0_0));

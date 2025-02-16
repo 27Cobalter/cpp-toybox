@@ -40,14 +40,14 @@ void Binning<Impl::Naive>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
   for (auto y : std::views::iota(0, src.rows) | std::views::stride(BINNING_Y)) {
     uint16_t* dptry = dst.ptr<uint16_t>(y >> shift_y);
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(BINNING_X)) {
-      uint16_t temp = 0;
+      uint32_t temp = 0;
       for (auto y_b : std::views::iota(0u, BINNING_Y)) {
         const uint16_t* sptryx = src.ptr<uint16_t>(y + y_b) + x;
         for (auto x_b : std::views::iota(0u, BINNING_X)) {
           temp += sptryx[x_b];
         }
       }
-      dptry[x >> shift_x] = temp;
+      dptry[x >> shift_x] = std::min<uint32_t>(temp, std::numeric_limits<uint16_t>::max());
     }
   }
 }
