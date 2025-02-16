@@ -10,7 +10,7 @@
 
 template <>
 void Binning<Impl::SeqRead>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
-                                   uint32_t binning_y) {
+                                     uint32_t binning_y) {
   Execute_Impl(binning_x, binning_y, src, dst);
 }
 
@@ -51,21 +51,14 @@ void Binning<Impl::SeqRead>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
         }
       }
     }
-    for (auto y_b : std::views::iota(1u, BINNING_Y - 1)) {
-      const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
-      for (auto x : std::views::iota(0, src.cols) | std::views::stride(BINNING_X)) {
-        uint16_t* dptryx = dptry + (x >> shift_x);
-        for (auto x_b : std::views::iota(0u, BINNING_X)) {
-          *dptryx += sptry[x + x_b];
-        }
-      }
-    }
-    {
-      const uint16_t* sptry = src.ptr<uint16_t>(y + BINNING_Y - 1);
-      for (auto x : std::views::iota(0, src.cols) | std::views::stride(BINNING_X)) {
-        uint16_t* dptryx = dptry + (x >> shift_x);
-        for (auto x_b : std::views::iota(0u, BINNING_X)) {
-          *dptryx += sptry[x + x_b];
+    if constexpr (BINNING_Y >= 1) {
+      for (auto y_b : std::views::iota(1u, BINNING_Y)) {
+        const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
+        for (auto x : std::views::iota(0, src.cols) | std::views::stride(BINNING_X)) {
+          uint16_t* dptryx = dptry + (x >> shift_x);
+          for (auto x_b : std::views::iota(0u, BINNING_X)) {
+            *dptryx += sptry[x + x_b];
+          }
         }
       }
     }

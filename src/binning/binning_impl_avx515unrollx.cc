@@ -17,8 +17,8 @@ void Binning<Impl::Avx512UnrollX>::Execute(const cv::Mat& src, cv::Mat& dst, uin
 template <>
 template <>
 void Binning<Impl::Avx512UnrollX>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
-  assert(src.cols / BINNING_X == dst.cols);
-  assert(src.rows / BINNING_Y == dst.rows);
+  assert(src.cols == dst.cols);
+  assert(src.rows == dst.rows);
   assert(src.type() == CV_16UC1);
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {

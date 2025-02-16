@@ -16,8 +16,8 @@ void Binning<Impl::Naive>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t bi
 template <>
 template <>
 void Binning<Impl::Naive>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
-  assert(src.cols / BINNING_X == dst.cols);
-  assert(src.rows / BINNING_Y == dst.rows);
+  assert(src.cols == dst.cols);
+  assert(src.rows == dst.rows);
   assert(src.type() == CV_16UC1);
   assert(src.type() == CV_16UC1);
   std::memcpy(dst.ptr<uint16_t>(), src.ptr<uint16_t>(), src.total() * sizeof(uint16_t));
