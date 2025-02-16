@@ -10,8 +10,8 @@
 #include <opencv4/opencv2/core/core.hpp>
 
 template <>
-void Binning<Impl::Avx512SeqBuffer>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
-                                   uint32_t binning_y) {
+void Binning<Impl::Avx512SeqBuffer>::Execute(const cv::Mat& src, cv::Mat& dst,
+                                             uint32_t binning_x, uint32_t binning_y) {
   Execute_Impl(binning_x, binning_y, src, dst);
 }
 
@@ -53,7 +53,7 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
   uint16_t* bptr = buffer.ptr<uint16_t>();
   for (auto y : std::views::iota(0, src.rows) | std::views::stride(BINNING_Y)) {
     int32_t y_b = 0;
-    {
+    if constexpr (BINNING_Y >= 2) {
       const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
       for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
         __m512i sv = _mm512_loadu_si512(sptry + x);
@@ -65,20 +65,20 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
         }
         _mm512_storeu_si512(bptr + x, sv);
       }
-    }
-    for (y_b = 1; y_b < BINNING_Y - 1; y_b++) {
-      const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
-      for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
-        __m512i sv = _mm512_loadu_si512(sptry + x);
-        __m512i bv = _mm512_loadu_si512(bptr + x);
-        if constexpr (BINNING_X == 2) {
-          sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
-        } else if constexpr (BINNING_X == 4) {
-          sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
-          sv = _mm512_maskz_adds_epu16(mask4, sv, _mm512_srli_epi64(sv, 32));
+      for (y_b = 1; y_b < BINNING_Y - 1; y_b++) {
+        const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
+        for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
+          __m512i sv = _mm512_loadu_si512(sptry + x);
+          __m512i bv = _mm512_loadu_si512(bptr + x);
+          if constexpr (BINNING_X == 2) {
+            sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
+          } else if constexpr (BINNING_X == 4) {
+            sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
+            sv = _mm512_maskz_adds_epu16(mask4, sv, _mm512_srli_epi64(sv, 32));
+          }
+          bv = _mm512_adds_epu16(bv, sv);
+          _mm512_storeu_si512(bptr + x, bv);
         }
-        bv = _mm512_adds_epu16(bv, sv);
-        _mm512_storeu_si512(bptr + x, bv);
       }
     }
     {
@@ -86,8 +86,16 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
       const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
       for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
         __m512i sv = _mm512_loadu_si512(sptry + x);
-        __m512i bv = _mm512_loadu_si512(bptr + x);
-        if constexpr (BINNING_X == 2) {
+        __m512i bv;
+        if constexpr (BINNING_Y == 1) {
+          bv = _mm512_setzero_si512();
+        } else {
+          bv = _mm512_loadu_si512(bptr + x);
+        }
+        if constexpr (BINNING_X == 1) {
+          bv = _mm512_adds_epu16(bv, sv);
+          _mm512_storeu_si512(dptry + (x >> shift_x), bv);
+        } else if constexpr (BINNING_X == 2) {
           sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
           bv = _mm512_adds_epu16(bv, sv);
           _mm256_storeu_si256(reinterpret_cast<__m256i*>(dptry + (x >> shift_x)),
