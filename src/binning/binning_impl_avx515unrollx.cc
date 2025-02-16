@@ -35,6 +35,8 @@ template <uint32_t BINNING_X, uint32_t BINNING_Y>
 void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
   static_assert(std::has_single_bit(BINNING_X));
   static_assert(std::has_single_bit(BINNING_Y));
+  static_assert(BINNING_X <= 4);
+  static_assert(BINNING_Y <= 4);
 
   constexpr int32_t shift_x = std::bit_width(BINNING_X) - 1;
   constexpr int32_t shift_y = std::bit_width(BINNING_Y) - 1;
@@ -44,48 +46,36 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst
   assert(src.type() == CV_16UC1);
   assert(src.type() == CV_16UC1);
 
+  __mmask32 mask;
   __m512i idx;
-  if constexpr (BINNING_X == 2) {
-    idx = _mm512_set_epi16(32 | 30, 32 | 28, 32 | 26, 32 | 24, 32 | 22, 32 | 20, 32 | 18,
-                           32 | 16, 32 | 14, 32 | 12, 32 | 10, 32 | 8, 32 | 6, 32 | 4, 32 | 2,
-                           32 | 0, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
-  } else if constexpr (BINNING_X == 4) {
-    idx = _mm512_set_epi16(32 | 28, 32 | 24, 32 | 20, 32 | 16, 32 | 12, 32 | 8, 32 | 4, 32 | 0,
-                           28, 24, 20, 16, 12, 8, 4, 0, 32 | 28, 32 | 24, 32 | 20, 32 | 16,
-                           32 | 12, 32 | 8, 32 | 4, 32 | 0, 28, 24, 20, 16, 12, 8, 4, 0);
+  if constexpr (BINNING_X == 1) {
+    mask = 0b11111111111111111111111111111111;
   }
+  if constexpr (BINNING_X == 2) {
+    mask = 0b01010101010101010101010101010101;
+    idx  = _mm512_set_epi16(32 | 30, 32 | 28, 32 | 26, 32 | 24, 32 | 22, 32 | 20, 32 | 18,
+                            32 | 16, 32 | 14, 32 | 12, 32 | 10, 32 | 8, 32 | 6, 32 | 4, 32 | 2,
+                            32 | 0, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  } else if constexpr (BINNING_X == 4) {
+    mask = 0b01010101010101010101010101010101;
+    idx  = _mm512_set_epi16(32 | 28, 32 | 24, 32 | 20, 32 | 16, 32 | 12, 32 | 8, 32 | 4, 32 | 0,
+                            28, 24, 20, 16, 12, 8, 4, 0, 32 | 28, 32 | 24, 32 | 20, 32 | 16,
+                            32 | 12, 32 | 8, 32 | 4, 32 | 0, 28, 24, 20, 16, 12, 8, 4, 0);
+  }
+  constexpr int32_t stride = 512 / 8 / sizeof(uint16_t);
+  const int32_t step1      = src.step1();
+  const int32_t step2      = src.step1() * 2;
+  const int32_t step3      = src.step1() * 3;
+
   for (auto y : std::views::iota(0, src.rows) | std::views::stride(BINNING_Y)) {
-    uint16_t* dptry = dst.ptr<uint16_t>(y >> shift_y);
-
-    constexpr int32_t stride = 512 / 8 / sizeof(uint16_t);
-
-    __mmask32 mask;
-    if constexpr (BINNING_X == 1) {
-      mask = 0b11111111111111111111111111111111;
-    } else if constexpr (BINNING_X == 2) {
-      mask = 0b01010101010101010101010101010101;
-    } else if constexpr (BINNING_X == 4) {
-      mask = 0b01010101010101010101010101010101;
-    }
-    const int32_t step1    = src.step1();
-    const int32_t step2    = src.step1() * 2;
-    const int32_t step3    = src.step1() * 3;
     const uint16_t* sptry  = src.ptr<uint16_t>(y);
-    __m512i p0_0           = _mm512_loadu_si512(sptry);
-    __m512i p0_1           = _mm512_loadu_si512(sptry + stride);
-    __m512i p1_0           = _mm512_loadu_si512(sptry + step1);
-    __m512i p1_1           = _mm512_loadu_si512(sptry + step1 + stride);
-    __m512i p2_0           = _mm512_loadu_si512(sptry + step2);
-    __m512i p2_1           = _mm512_loadu_si512(sptry + step2 + stride);
-    __m512i p3_0           = _mm512_loadu_si512(sptry + step3);
-    __m512i p3_1           = _mm512_loadu_si512(sptry + step3 + stride);
-    const uint16_t* sptryn = sptry + (stride << 1);
+    const uint16_t* sptry_ = sptry + stride;
+    uint16_t* dptry        = dst.ptr<uint16_t>(y >> shift_y);
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride << 1)) {
-      const uint16_t* sptrynx = sptryn + x;
-      __m512i y0_0            = p0_0;
-      __m512i y0_1            = p0_1;
-      p0_0                    = _mm512_loadu_si512(sptrynx);
-      p0_1                    = _mm512_loadu_si512(sptrynx + stride);
+      const uint16_t* sptryx  = sptry + x;
+      const uint16_t* sptryx_ = sptry_ + x;
+      __m512i y0_0            = _mm512_loadu_si512(sptryx);
+      __m512i y0_1            = _mm512_loadu_si512(sptryx_);
       if constexpr (BINNING_X >= 2) {
         __m512i y0_0s = _mm512_srli_epi64(y0_0, 16);
         __m512i y0_1s = _mm512_srli_epi64(y0_1, 16);
@@ -93,10 +83,8 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst
         y0_1          = _mm512_adds_epu16(y0_1, y0_1s);
       }
       if constexpr (BINNING_Y >= 2) {
-        __m512i y1_0 = p1_0;
-        __m512i y1_1 = p1_1;
-        p1_0         = _mm512_loadu_si512(sptrynx + step1);
-        p1_1         = _mm512_loadu_si512(sptrynx + step1 + stride);
+        __m512i y1_0 = _mm512_loadu_si512(sptryx + step1);
+        __m512i y1_1 = _mm512_loadu_si512(sptryx_ + step1);
         if constexpr (BINNING_X >= 2) {
           __m512i y1_0s = _mm512_srli_epi64(y1_0, 16);
           __m512i y1_1s = _mm512_srli_epi64(y1_1, 16);
@@ -108,14 +96,10 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst
       }
 
       if constexpr (BINNING_Y == 4) {
-        __m512i y2_0 = p2_0;
-        __m512i y2_1 = p2_1;
-        __m512i y3_0 = p3_0;
-        __m512i y3_1 = p3_1;
-        p2_0         = _mm512_loadu_si512(sptrynx + step2);
-        p2_1         = _mm512_loadu_si512(sptrynx + step2 + stride);
-        p3_0         = _mm512_loadu_si512(sptrynx + step3);
-        p3_1         = _mm512_loadu_si512(sptrynx + step3 + stride);
+        __m512i y2_0 = _mm512_loadu_si512(sptryx + step2);
+        __m512i y2_1 = _mm512_loadu_si512(sptryx_ + step2);
+        __m512i y3_0 = _mm512_loadu_si512(sptryx + step3);
+        __m512i y3_1 = _mm512_loadu_si512(sptryx_ + step3);
         if constexpr (BINNING_X >= 2) {
           __m512i y2_0s = _mm512_srli_epi64(y2_0, 16);
           __m512i y2_1s = _mm512_srli_epi64(y2_1, 16);
