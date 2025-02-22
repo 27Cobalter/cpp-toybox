@@ -37,8 +37,13 @@ template <auto EV>
 consteval std::basic_string_view<char> FullName() {
   auto loc                = std::source_location::current();
   auto fname              = std::string_view(loc.function_name());
+#if _MSC_VER
+  std::string_view prefix = "FullName<";
+  std::string_view suffix = ">(void)";
+#else
   std::string_view prefix = "EV = ";
   std::string_view suffix = "]";
+#endif
   int32_t start           = fname.find(prefix) + prefix.length();
   int32_t end             = fname.rfind(suffix) - start;
   return fname.substr(start, end);
