@@ -15,7 +15,7 @@ auto main() -> int {
 
   char text[512];
 
-  std::span<libusb_device*> devices{list, cnt};
+  std::span<libusb_device*> devices{list, static_cast<size_t>(cnt)};
   for (auto& device : devices) {
     struct libusb_device_descriptor desc;
     libusb_device_handle* handle;
