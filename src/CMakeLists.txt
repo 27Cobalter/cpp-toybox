@@ -7,6 +7,7 @@ endif()
 # add_subdirectory(stack_hist)
 # add_subdirectory(binning)
 add_subdirectory(enum_utils)
+add_subdirectory(shared_proj)
 
 # if(NOT WIN32)
 #   add_subdirectory(usb)
