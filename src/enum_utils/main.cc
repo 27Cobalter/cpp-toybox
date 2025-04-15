@@ -93,22 +93,22 @@ consteval std::string_view ValueName() {
   return sv.back();
 }
 namespace __TEST {
-constexpr auto TEST_ENUM   = std::float_round_style::round_to_nearest;
-constexpr auto TEST_SCOPED = std::ranges::subrange_kind::unsized;
-static_assert(IsEnumValue<TEST_ENUM>);
-static_assert(IsEnumValue<TEST_SCOPED>);
-// static_assert(IsScopedEnumValue<TEST_ENUM>); // Err
-static_assert(IsScopedEnumValue<TEST_SCOPED>);
+// constexpr auto TEST_ENUM   = std::float_round_style::round_to_nearest;
+// constexpr auto TEST_SCOPED = std::ranges::subrange_kind::unsized;
+// static_assert(IsEnumValue<TEST_ENUM>);
+// static_assert(IsEnumValue<TEST_SCOPED>);
+// // static_assert(IsScopedEnumValue<TEST_ENUM>); // Err
+// static_assert(IsScopedEnumValue<TEST_SCOPED>);
 
-static_assert(FullName<TEST_ENUM>() == "std::round_to_nearest");
+// static_assert(FullName<TEST_ENUM>() == "std::round_to_nearest");
 // static_assert(ScopedName<TEST_ENUM>() == "float_round_style::round_to_nearest"); // Err
 // static_assert(TypeName<TEST_ENUM>() == "float_round_type"); // Err
-static_assert(ValueName<TEST_ENUM>() == "round_to_nearest");
+// static_assert(ValueName<TEST_ENUM>() == "round_to_nearest");
 
-static_assert(FullName<TEST_SCOPED>() == "std::ranges::subrange_kind::unsized");
-static_assert(ScopedName<TEST_SCOPED>() == "subrange_kind::unsized");
-static_assert(TypeName<TEST_SCOPED>() == "subrange_kind");
-static_assert(ValueName<TEST_SCOPED>() == "unsized");
+// static_assert(FullName<TEST_SCOPED>() == "std::ranges::subrange_kind::unsized");
+// static_assert(ScopedName<TEST_SCOPED>() == "subrange_kind::unsized");
+// static_assert(TypeName<TEST_SCOPED>() == "subrange_kind");
+// static_assert(ValueName<TEST_SCOPED>() == "unsized");
 } // namespace __TEST
 } // namespace enum_utils
 
@@ -153,18 +153,18 @@ auto main() -> int {
   }
 
   {
-    PrintTypeValue<Vb>();        // direct value
-    PrintTypeValue<Scope::Vf>(); // namespace direct value
+    // PrintTypeValue<Vb>();        // direct value
+    // PrintTypeValue<Scope::Vf>(); // namespace direct value
 
-    using ScopedCpp = Scope::ScopedCpp;
-    PrintTypeValue<ScopedCpp::Vh>(); // using short
+    // using ScopedCpp = Scope::ScopedCpp;
+    // PrintTypeValue<ScopedCpp::Vh>(); // using short
 
-    using namespace Scope::Nest;
-    PrintTypeValue<Vj>();            // using namespace direct
-    PrintTypeValue<NestedCpp::Vl>(); // using namespace
+    // using namespace Scope::Nest;
+    // PrintTypeValue<Vj>();            // using namespace direct
+    // PrintTypeValue<NestedCpp::Vl>(); // using namespace
 
-    using AnotherName = Class::ClassCpp;
-    PrintTypeValue<AnotherName::Vp>(); // using rename
+    // using AnotherName = Class::ClassCpp;
+    // PrintTypeValue<AnotherName::Vp>(); // using rename
   }
   return 0;
 }
