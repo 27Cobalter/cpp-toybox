@@ -35,17 +35,17 @@ consteval std::basic_string_view<char> RawName() {
 template <auto EV>
   requires IsEnumValue<EV>
 consteval std::basic_string_view<char> FullName() {
-  auto loc                = std::source_location::current();
-  auto fname              = std::string_view(loc.function_name());
+  auto loc   = std::source_location::current();
+  auto fname = std::string_view(loc.function_name());
 #if _MSC_VER
   std::string_view prefix = "FullName<";
-  std::string_view suffix = ">(void)";
+  std::string_view suffix = ">(";
 #else
   std::string_view prefix = "EV = ";
   std::string_view suffix = "]";
 #endif
-  int32_t start           = fname.find(prefix) + prefix.length();
-  int32_t end             = fname.rfind(suffix) - start;
+  int32_t start = fname.find(prefix) + prefix.length();
+  int32_t end   = fname.rfind(suffix) - start;
   return fname.substr(start, end);
 }
 
@@ -55,12 +55,17 @@ consteval std::basic_string_view<char> ScopedName() {
   std::string_view aa = enum_utils::FullName<EV>();
   std::vector<std::string_view> sv;
   using namespace std::literals;
-  for (auto e : aa | std::ranges::views::split("::"sv)) {
+  constexpr std::string_view separator = "::"sv;
+  for (const auto& e : aa | std::ranges::views::split(separator)) {
     sv.emplace_back(std::string_view{e.begin(), e.end()});
   }
   if (sv.size() >= 2) {
-    return std::string_view(sv[sv.size() - 2].begin(), sv[sv.size() - 1].end());
+    return std::string_view(
+        sv[sv.size() - 2].data(),
+        sv[sv.size() - 2].size() + sv[sv.size() - 1].size() + separator.size());
+    // return std::string_view(sv[sv.size() - 2].begin(), sv[sv.size() - 1].end());
   } else {
+    static_assert(false);
     return "";
   }
 }
@@ -71,12 +76,13 @@ consteval std::basic_string_view<char> TypeName() {
   std::string_view aa = enum_utils::FullName<EV>();
   std::vector<std::string_view> sv;
   using namespace std::literals;
-  for (auto e : aa | std::ranges::views::split("::"sv)) {
+  for (const auto& e : aa | std::ranges::views::split("::"sv)) {
     sv.emplace_back(std::string_view{e.begin(), e.end()});
   }
   if (sv.size() >= 2) {
     return sv[sv.size() - 2];
   } else {
+    static_assert(false);
     return "";
   }
 }
@@ -87,28 +93,32 @@ consteval std::string_view ValueName() {
   std::string_view aa = enum_utils::FullName<EV>();
   std::vector<std::string_view> sv;
   using namespace std::literals;
-  for (auto e : aa | std::ranges::views::split("::"sv)) {
+  for (const auto& e : aa | std::ranges::views::split("::"sv)) {
     sv.emplace_back(std::string_view{e.begin(), e.end()});
   }
   return sv.back();
 }
 namespace __TEST {
-// constexpr auto TEST_ENUM   = std::float_round_style::round_to_nearest;
-// constexpr auto TEST_SCOPED = std::ranges::subrange_kind::unsized;
-// static_assert(IsEnumValue<TEST_ENUM>);
-// static_assert(IsEnumValue<TEST_SCOPED>);
-// // static_assert(IsScopedEnumValue<TEST_ENUM>); // Err
-// static_assert(IsScopedEnumValue<TEST_SCOPED>);
+constexpr auto TEST_ENUM   = std::float_round_style::round_to_nearest;
+constexpr auto TEST_SCOPED = std::ranges::subrange_kind::unsized;
+static_assert(IsEnumValue<TEST_ENUM>);
+static_assert(IsEnumValue<TEST_SCOPED>);
+// static_assert(IsScopedEnumValue<TEST_ENUM>); // Err
+static_assert(IsScopedEnumValue<TEST_SCOPED>);
 
-// static_assert(FullName<TEST_ENUM>() == "std::round_to_nearest");
+static_assert(FullName<TEST_ENUM>() == "std::round_to_nearest");
 // static_assert(ScopedName<TEST_ENUM>() == "float_round_style::round_to_nearest"); // Err
 // static_assert(TypeName<TEST_ENUM>() == "float_round_type"); // Err
-// static_assert(ValueName<TEST_ENUM>() == "round_to_nearest");
+static_assert(ValueName<TEST_ENUM>() == "round_to_nearest");
 
-// static_assert(FullName<TEST_SCOPED>() == "std::ranges::subrange_kind::unsized");
-// static_assert(ScopedName<TEST_SCOPED>() == "subrange_kind::unsized");
-// static_assert(TypeName<TEST_SCOPED>() == "subrange_kind");
-// static_assert(ValueName<TEST_SCOPED>() == "unsized");
+constexpr std::string_view TEST_FULLNAME = FullName<TEST_SCOPED>();
+static_assert(TEST_FULLNAME == "std::ranges::subrange_kind::unsized");
+constexpr std::string_view TEST_SCOPEDNAME = ScopedName<TEST_SCOPED>();
+static_assert(TEST_SCOPEDNAME == "subrange_kind::unsized");
+static_assert(TypeName<TEST_SCOPED>() == "subrange_kind");
+
+constexpr std::string_view TEST_VALUENAME = ValueName<TEST_SCOPED>();
+static_assert(TEST_VALUENAME == "unsized");
 } // namespace __TEST
 } // namespace enum_utils
 
@@ -153,18 +163,18 @@ auto main() -> int {
   }
 
   {
-    // PrintTypeValue<Vb>();        // direct value
-    // PrintTypeValue<Scope::Vf>(); // namespace direct value
+    PrintTypeValue<Vb>();        // direct value
+    PrintTypeValue<Scope::Vf>(); // namespace direct value
 
-    // using ScopedCpp = Scope::ScopedCpp;
-    // PrintTypeValue<ScopedCpp::Vh>(); // using short
+    using ScopedCpp = Scope::ScopedCpp;
+    PrintTypeValue<ScopedCpp::Vh>(); // using short
 
-    // using namespace Scope::Nest;
-    // PrintTypeValue<Vj>();            // using namespace direct
-    // PrintTypeValue<NestedCpp::Vl>(); // using namespace
+    using namespace Scope::Nest;
+    PrintTypeValue<Vj>();            // using namespace direct
+    PrintTypeValue<NestedCpp::Vl>(); // using namespace
 
-    // using AnotherName = Class::ClassCpp;
-    // PrintTypeValue<AnotherName::Vp>(); // using rename
+    using AnotherName = Class::ClassCpp;
+    PrintTypeValue<AnotherName::Vp>(); // using rename
   }
   return 0;
 }
