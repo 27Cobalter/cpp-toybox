@@ -65,7 +65,6 @@ consteval std::basic_string_view<char> ScopedName() {
         sv[sv.size() - 2].size() + sv[sv.size() - 1].size() + separator.size());
     // return std::string_view(sv[sv.size() - 2].begin(), sv[sv.size() - 1].end());
   } else {
-    static_assert(false);
     return "";
   }
 }
@@ -82,7 +81,6 @@ consteval std::basic_string_view<char> TypeName() {
   if (sv.size() >= 2) {
     return sv[sv.size() - 2];
   } else {
-    static_assert(false);
     return "";
   }
 }
@@ -98,6 +96,7 @@ consteval std::string_view ValueName() {
   }
   return sv.back();
 }
+
 namespace __TEST {
 constexpr auto TEST_ENUM   = std::float_round_style::round_to_nearest;
 constexpr auto TEST_SCOPED = std::ranges::subrange_kind::unsized;
@@ -176,5 +175,6 @@ auto main() -> int {
     using AnotherName = Class::ClassCpp;
     PrintTypeValue<AnotherName::Vp>(); // using rename
   }
+
   return 0;
 }
