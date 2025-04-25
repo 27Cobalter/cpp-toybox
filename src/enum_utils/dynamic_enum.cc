@@ -51,6 +51,12 @@ struct GetName {
       name != "" ? std::optional<std::string_view>(name) : std::nullopt;
 };
 
+template <auto EV>
+struct GetValue {
+  static constexpr auto value =
+      ValueName<EV>() != "" ? std::optional<decltype(EV)>(EV) : std::nullopt;
+};
+
 template <typename T, uint32_t Min, uint32_t Max, template <auto> typename Predicate,
           typename ResultType, size_t... Indices>
 consteval auto create_filtered_list_impl(std::index_sequence<Indices...>) {
@@ -98,6 +104,13 @@ auto main() -> int32_t {
   std::println("Filtered list size: {}", filtered_list.size());
   for (const auto& e : filtered_list) {
     std::println("Filtered => {}", std::string(e));
+  }
+
+  constexpr auto filtered_value =
+      create_filtered_list<Enum, 0x00000000, 0x00000100, GetValue, Enum>();
+  std::println("Filtered list size: {}", filtered_value.size());
+  for (const auto& e : filtered_value) {
+    std::println("Filtered => {:08X}", static_cast<int32_t>(e));
   }
   return 0;
 }
