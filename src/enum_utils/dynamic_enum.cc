@@ -62,7 +62,6 @@ template <typename T, uint32_t Min, uint32_t Max, template <auto> typename Predi
 consteval auto create_filtered_list_impl(std::index_sequence<Indices...>) {
   constexpr std::array values = {(Predicate<static_cast<T>(Min + Indices)>::value)...};
 
-  // 有効な値のみを抽出（-1は無効値としてフィルタリング）
   constexpr size_t count = ((values[Indices].has_value()) + ...);
   std::array<ResultType, count> result{};
   size_t index = 0;
