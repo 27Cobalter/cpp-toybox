@@ -81,6 +81,25 @@ consteval auto create_filtered_list() {
       std::make_index_sequence<Max - Min + 1>{});
 }
 
+template <size_t size, typename T, std::size_t... sizes>
+consteval auto concatenate(const std::array<T, sizes>&... arrays) {
+  std::array<T, size> result{};
+  size_t index = 0;
+  ((std::copy(arrays.begin(), arrays.end(), result.begin() + index), index += arrays.size()),
+   ...);
+  return result;
+}
+
+template <typename T, auto Min, auto Max, template <auto> typename Predicate,
+          typename ResultType>
+consteval auto create_filtered_tree() {
+  constexpr auto Half = Max / 2;
+  constexpr auto lo   = create_filtered_list<T, Min, Half, Predicate, ResultType>();
+  constexpr auto hi   = create_filtered_list<T, Half + 1, Max, Predicate, ResultType>();
+  constexpr auto size = lo.size() + hi.size();
+  return concatenate<size>(lo, hi);
+}
+
 enum Enum : uint32_t {
   Ox00000001 = 0x00000001,
   Ox00000010 = 0x00000010,
@@ -99,17 +118,17 @@ auto main() -> int32_t {
   std::println("FullName => {}", std::string{ValueName<static_cast<Enum>(0xF0F0F0F0)>()});
 
   constexpr auto filtered_list =
-      create_filtered_list<Enum, 0x00000000, 0x00000100, GetName, std::string_view>();
+      create_filtered_tree<Enum, 0x00000000, 0x00000100, GetName, std::string_view>();
   std::println("Filtered list size: {}", filtered_list.size());
   for (const auto& e : filtered_list) {
     std::println("Filtered => {}", std::string(e));
   }
 
-  constexpr auto filtered_value =
-      create_filtered_list<Enum, 0x00000000, 0x00000100, GetValue, Enum>();
-  std::println("Filtered list size: {}", filtered_value.size());
-  for (const auto& e : filtered_value) {
-    std::println("Filtered => {:08X}", static_cast<int32_t>(e));
-  }
+  // constexpr auto filtered_value =
+  //     create_filtered_list<Enum, 0x00000000, 0x00001100, GetValue, Enum>();
+  // std::println("Filtered list size: {}", filtered_value.size());
+  // for (const auto& e : filtered_value) {
+  //   std::println("Filtered => {:08X}", static_cast<int32_t>(e));
+  // }
   return 0;
 }
