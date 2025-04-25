@@ -52,13 +52,13 @@ struct GetName {
 };
 
 template <typename T, uint32_t Min, uint32_t Max, template <auto> typename Predicate,
-          size_t... Indices>
+          typename ResultType, size_t... Indices>
 consteval auto create_filtered_list_impl(std::index_sequence<Indices...>) {
   constexpr std::array values = {(Predicate<static_cast<T>(Min + Indices)>::value)...};
 
   // 有効な値のみを抽出（-1は無効値としてフィルタリング）
   constexpr size_t count = ((values[Indices].has_value()) + ...);
-  std::array<std::string_view, count> result{};
+  std::array<ResultType, count> result{};
   size_t index = 0;
   for (size_t i = 0; i < values.size(); ++i) {
     if (values[i].has_value()) {
@@ -69,9 +69,10 @@ consteval auto create_filtered_list_impl(std::index_sequence<Indices...>) {
   return result;
 }
 
-template <typename T, auto Min, auto Max, template <auto> typename Predicate>
+template <typename T, auto Min, auto Max, template <auto> typename Predicate,
+          typename ResultType>
 consteval auto create_filtered_list() {
-  return create_filtered_list_impl<T, Min, Max, Predicate>(
+  return create_filtered_list_impl<T, Min, Max, Predicate, ResultType>(
       std::make_index_sequence<Max - Min + 1>{});
 }
 
@@ -92,7 +93,8 @@ auto main() -> int32_t {
   std::println("FullName => {}", std::string{ValueName<Enum::OxFFFFFFFF>()});
   std::println("FullName => {}", std::string{ValueName<static_cast<Enum>(0xF0F0F0F0)>()});
 
-  constexpr auto filtered_list = create_filtered_list<Enum, 0x00000000, 0x00000100, GetName>();
+  constexpr auto filtered_list =
+      create_filtered_list<Enum, 0x00000000, 0x00000100, GetName, std::string_view>();
   std::println("Filtered list size: {}", filtered_list.size());
   for (const auto& e : filtered_list) {
     std::println("Filtered => {}", std::string(e));
