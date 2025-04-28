@@ -8,6 +8,7 @@ add_subdirectory(stack_hist)
 # add_subdirectory(binning)
 add_subdirectory(enum_utils)
 add_subdirectory(shared_proj)
+add_subdirectory(magic_enum_call)
 
 # if(NOT WIN32)
 #   add_subdirectory(usb)
