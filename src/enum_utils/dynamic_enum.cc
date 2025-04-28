@@ -50,10 +50,27 @@ struct GetValuePredicate {
       ValueName<EV>() != "" ? std::optional<decltype(EV)>(EV) : std::nullopt;
 };
 
-template <typename T, uint32_t Min, uint32_t Max, template <auto> typename Predicate,
-          typename ResultType, size_t... Indices>
-consteval auto GetEnumList_Impl(std::index_sequence<Indices...>) {
+template <typename T, uint32_t Min, template <auto> typename Predicate, typename ResultType,
+          size_t... Indices>
+consteval auto GetEnumList_Sequence(std::index_sequence<Indices...>) {
   constexpr std::array values = {(Predicate<static_cast<T>(Min + Indices)>::value)...};
+
+  constexpr size_t count = ((values[Indices].has_value()) + ...);
+  std::array<ResultType, count> result{};
+  size_t index = 0;
+  for (size_t i = 0; i < values.size(); ++i) {
+    if (values[i].has_value()) {
+      result[index++] = values[i].value();
+    }
+  }
+
+  return result;
+}
+
+template <typename T, template <auto> typename Predicate, typename ResultType,
+          size_t... Indices>
+consteval auto GetEnumList_Bitflag(std::index_sequence<Indices...>) {
+  constexpr std::array values = {(Predicate<static_cast<T>(1 << Indices)>::value)...};
 
   constexpr size_t count = ((values[Indices].has_value()) + ...);
   std::array<ResultType, count> result{};
@@ -71,8 +88,10 @@ template <typename T, auto Min, auto Max, template <auto> typename Predicate,
           typename ResultType>
 consteval auto GetEnumList_Invoke() {
   static_assert(Max - Min + 1 >= 1);
-  return GetEnumList_Impl<T, Min, Max, Predicate, ResultType>(
+  return GetEnumList_Sequence<T, Min, Predicate, ResultType>(
       std::make_index_sequence<Max - Min + 1>{});
+
+  // return GetEnumList_Bitflag<T, Predicate, ResultType>(std::make_index_sequence<31>{});
 }
 
 template <typename ResultType, size_t size, std::size_t... sizes>
@@ -100,6 +119,20 @@ consteval auto GetEnumList() {
 
 enum Enum : uint32_t {
   Ox00000001 = 0x00000001,
+  Ox00000002 = 0x00000002,
+  Ox00000003 = 0x00000003,
+  Ox00000004 = 0x00000004,
+  Ox00000005 = 0x00000005,
+  Ox00000006 = 0x00000006,
+  Ox00000007 = 0x00000007,
+  Ox00000008 = 0x00000008,
+  Ox00000009 = 0x00000009,
+  Ox0000000A = 0x0000000A,
+  Ox0000000B = 0x0000000B,
+  Ox0000000C = 0x0000000C,
+  Ox0000000D = 0x0000000D,
+  Ox0000000E = 0x0000000E,
+  Ox0000000F = 0x0000000F,
   Ox00000010 = 0x00000010,
   Ox00000100 = 0x00000100,
   Ox00001000 = 0x00001000,
