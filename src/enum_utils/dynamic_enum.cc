@@ -50,6 +50,19 @@ struct GetValuePredicate {
       ValueName<EV>() != "" ? std::optional<decltype(EV)>(EV) : std::nullopt;
 };
 
+struct EnumRange {
+  uint32_t min;
+  uint32_t max;
+};
+
+template <typename T>
+struct EnumRanges {
+  static constexpr bool is_flag      = false;
+  static constexpr std::array ranges = {
+      EnumRange{0x00000000, 0x000000FF},
+  };
+};
+
 template <typename T, uint32_t Min, template <auto> typename Predicate, typename ResultType,
           size_t... Indices>
 consteval auto GetEnumList_Sequence(std::index_sequence<Indices...>) {
@@ -117,7 +130,24 @@ consteval auto GetEnumList() {
   }
 }
 
+template <typename T, template <auto> typename Predicate, typename ResultType, size_t... I>
+consteval auto GetEnumList_FromRanges_Impl(std::index_sequence<I...>) {
+  constexpr auto& ranges = EnumRanges<T>::ranges;
+  constexpr size_t total_size =
+      (GetEnumList<T, ranges[I].min, ranges[I].max, Predicate, ResultType>().size() + ...);
+  return Concatenate<ResultType, total_size>(
+      GetEnumList<T, ranges[I].min, ranges[I].max, Predicate, ResultType>()...);
+}
+
+template <typename T, template <auto> typename Predicate, typename ResultType>
+consteval auto GetEnumList_AllRanges() {
+  constexpr auto& ranges = EnumRanges<T>::ranges;
+  return GetEnumList_FromRanges_Impl<T, Predicate, ResultType>(
+      std::make_index_sequence<ranges.size()>{});
+}
+
 enum Enum : uint32_t {
+  Ox00000000 = 0x00000000,
   Ox00000001 = 0x00000001,
   Ox00000002 = 0x00000002,
   Ox00000003 = 0x00000003,
@@ -140,7 +170,31 @@ enum Enum : uint32_t {
   Ox00100000 = 0x00100000,
   Ox01000000 = 0x01000000,
   Ox10000000 = 0x10000000,
+  Ox80000000 = 0x80000000,
+  Ox80000001 = 0x80000001,
+  Ox80000002 = 0x80000002,
+  Ox80000003 = 0x80000003,
+  Ox80000004 = 0x80000004,
+  Ox80000005 = 0x80000005,
+  Ox80000006 = 0x80000006,
+  Ox80000007 = 0x80000007,
+  Ox80000008 = 0x80000008,
+  Ox80000009 = 0x80000009,
+  Ox8000000A = 0x8000000A,
+  Ox8000000B = 0x8000000B,
+  Ox8000001C = 0x8000000C,
+  Ox8000000D = 0x8000000D,
+  Ox8000000E = 0x8000000E,
+  Ox8000000F = 0x8000000F,
   OxFFFFFFFF = 0xFFFFFFFF,
+};
+
+template <>
+struct EnumRanges<Enum> {
+  static constexpr std::array ranges = {
+      EnumRange{0x00000000, 0x000000FF},
+      EnumRange{0x80000000, 0x800000FF},
+  };
 };
 
 auto main() -> int32_t {
@@ -160,6 +214,13 @@ auto main() -> int32_t {
   std::println("Filtered list size: {}", filtered_value.size());
   for (const auto& e : filtered_value) {
     std::println("Filtered => {:08X}", static_cast<int32_t>(e));
+  }
+
+  constexpr auto filtered_all_list =
+      GetEnumList_AllRanges<Enum, GetNamePredicate, std::string_view>();
+  std::println("Filtered all ranges list size: {}", filtered_all_list.size());
+  for (const auto& e : filtered_all_list) {
+    std::println("Filtered all ranges => {}", std::string(e));
   }
   return 0;
 }
