@@ -168,6 +168,13 @@ constexpr auto EnumName(T value) {
 }
 
 template<typename T>
+consteval size_t EnumCount() {
+  constexpr auto values = EnumValues<T>();
+  constexpr size_t count = values.size();
+  return count;
+}
+
+template<typename T>
 constexpr std::optional<T> EnumCast(std::string_view name) {
   constexpr auto entries = EnumEntries<T>();
   for (const auto& [value, entry_name] : entries) {
