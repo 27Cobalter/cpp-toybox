@@ -1,18 +1,18 @@
-﻿#include <cstdint>
-#include <format>
-#include <algorithm>
-#include <optional>
+﻿#include <algorithm>
 #include <array>
+#include <cstdint>
+#include <format>
+#include <iostream>
+#include <optional>
 #include <ranges>
 #include <source_location>
-#include <iostream>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
-template <auto EV>
+template<auto EV>
   requires std::is_enum_v<decltype(EV)>
 consteval std::string_view ValueName() {
   auto location      = std::source_location::current();
@@ -40,17 +40,15 @@ consteval std::string_view ValueName() {
   }
 }
 
-template <auto EV>
+template<auto EV>
 struct GetNamePredicate {
   static constexpr std::string_view name = ValueName<EV>();
-  static constexpr auto value =
-      name != "" ? std::optional<std::string_view>(name) : std::nullopt;
+  static constexpr auto value            = name != "" ? std::optional<std::string_view>(name) : std::nullopt;
 };
 
-template <auto EV>
+template<auto EV>
 struct GetValuePredicate {
-  static constexpr auto value =
-      ValueName<EV>() != "" ? std::optional<decltype(EV)>(EV) : std::nullopt;
+  static constexpr auto value = ValueName<EV>() != "" ? std::optional<decltype(EV)>(EV) : std::nullopt;
 };
 
 struct EnumRange {
@@ -58,7 +56,7 @@ struct EnumRange {
   uint32_t max;
 };
 
-template <typename T>
+template<typename T>
 struct EnumRanges {
   static constexpr bool is_flag      = false;
   static constexpr std::array ranges = {
@@ -66,8 +64,7 @@ struct EnumRanges {
   };
 };
 
-template <typename T, uint32_t Min, template <auto> typename Predicate, typename ResultType,
-          size_t... Indices>
+template<typename T, uint32_t Min, template<auto> typename Predicate, typename ResultType, size_t... Indices>
 consteval auto GetEnumList_Sequence(std::index_sequence<Indices...>) {
   constexpr std::array values = {(Predicate<static_cast<T>(Min + Indices)>::value)...};
 
@@ -83,8 +80,7 @@ consteval auto GetEnumList_Sequence(std::index_sequence<Indices...>) {
   return result;
 }
 
-template <typename T, template <auto> typename Predicate, typename ResultType,
-          size_t... Indices>
+template<typename T, template<auto> typename Predicate, typename ResultType, size_t... Indices>
 consteval auto GetEnumList_Bitflag(std::index_sequence<Indices...>) {
   constexpr std::array values = {(Predicate<static_cast<T>(1 << Indices)>::value)...};
 
@@ -100,26 +96,22 @@ consteval auto GetEnumList_Bitflag(std::index_sequence<Indices...>) {
   return result;
 }
 
-template <typename T, auto Min, auto Max, template <auto> typename Predicate,
-          typename ResultType>
+template<typename T, auto Min, auto Max, template<auto> typename Predicate, typename ResultType>
 consteval auto GetEnumList_Invoke() {
   static_assert(Max - Min + 1 >= 1);
-  return GetEnumList_Sequence<T, Min, Predicate, ResultType>(
-      std::make_index_sequence<Max - Min + 1>{});
+  return GetEnumList_Sequence<T, Min, Predicate, ResultType>(std::make_index_sequence<Max - Min + 1>{});
 }
 
-template <typename ResultType, std::size_t... sizes>
+template<typename ResultType, std::size_t... sizes>
 consteval auto Concatenate(const std::array<ResultType, sizes>&... arrays) {
   constexpr size_t total_size = (sizes + ... + 0);
   std::array<ResultType, total_size> result{};
   size_t index = 0;
-  ((std::copy(arrays.begin(), arrays.end(), result.begin() + index), index += arrays.size()),
-   ...);
+  ((std::copy(arrays.begin(), arrays.end(), result.begin() + index), index += arrays.size()), ...);
   return result;
 }
 
-template <typename T, auto Min, auto Max, template <auto> typename Predicate,
-          typename ResultType>
+template<typename T, auto Min, auto Max, template<auto> typename Predicate, typename ResultType>
 consteval auto GetEnumList() {
   constexpr auto Half = (Max - Min) / 2 + Min;
   if constexpr (Max - Min < 256) {
@@ -131,14 +123,13 @@ consteval auto GetEnumList() {
   }
 }
 
-template <typename T, template <auto> typename Predicate, typename ResultType, size_t... I>
+template<typename T, template<auto> typename Predicate, typename ResultType, size_t... I>
 consteval auto GetEnumList_FromRanges_Impl(std::index_sequence<I...>) {
   constexpr auto& ranges = EnumRanges<T>::ranges;
-  return Concatenate<ResultType>(
-      GetEnumList<T, ranges[I].min, ranges[I].max, Predicate, ResultType>()...);
+  return Concatenate<ResultType>(GetEnumList<T, ranges[I].min, ranges[I].max, Predicate, ResultType>()...);
 }
 
-template <typename ResultType>
+template<typename ResultType>
 consteval auto UniqueSort(auto merged_list) {
   std::sort(merged_list.begin(), merged_list.end());
   auto duplicate = std::unique(merged_list.begin(), merged_list.end());
@@ -146,22 +137,20 @@ consteval auto UniqueSort(auto merged_list) {
   return std::tuple<decltype(merged_list), size_t>{merged_list, distance};
 }
 
-template <typename T, template <auto> typename Predicate, typename ResultType>
+template<typename T, template<auto> typename Predicate, typename ResultType>
 consteval auto GetEnumList_AllRanges() {
-  constexpr auto& ranges      = EnumRanges<T>::ranges;
-  constexpr std::array result = GetEnumList_FromRanges_Impl<T, Predicate, ResultType>(
-      std::make_index_sequence<ranges.size()>{});
+  constexpr auto& ranges = EnumRanges<T>::ranges;
+  constexpr std::array result =
+      GetEnumList_FromRanges_Impl<T, Predicate, ResultType>(std::make_index_sequence<ranges.size()>{});
 
   if constexpr (EnumRanges<T>::is_flag == false) {
     return result;
   } else {
-    constexpr std::array flag_list =
-        GetEnumList_Bitflag<T, Predicate, ResultType>(std::make_index_sequence<31>{});
-    constexpr auto merged_list = Concatenate<ResultType>(result, flag_list);
-    constexpr auto result      = UniqueSort<ResultType>(merged_list);
+    constexpr std::array flag_list = GetEnumList_Bitflag<T, Predicate, ResultType>(std::make_index_sequence<31>{});
+    constexpr auto merged_list     = Concatenate<ResultType>(result, flag_list);
+    constexpr auto result          = UniqueSort<ResultType>(merged_list);
     std::array<ResultType, std::get<1>(result)> ret_list;
-    std::copy(std::get<0>(result).begin(), std::get<0>(result).begin() + std::get<1>(result),
-              ret_list.begin());
+    std::copy(std::get<0>(result).begin(), std::get<0>(result).begin() + std::get<1>(result), ret_list.begin());
     return ret_list;
   }
 }
@@ -209,7 +198,7 @@ enum Enum : uint32_t {
   OxFFFFFFFF = 0xFFFFFFFF,
 };
 
-template <>
+template<>
 struct EnumRanges<Enum> {
   static constexpr bool is_flag      = true;
   static constexpr std::array ranges = {
@@ -219,32 +208,24 @@ struct EnumRanges<Enum> {
 };
 
 auto main() -> int32_t {
-  std::cout << std::format("FullName => {}", std::string{ValueName<Enum::Ox00000001>()})
-            << std::endl;
-  std::cout << std::format("FullName => {}", std::string{ValueName<Enum::OxFFFFFFFF>()})
-            << std::endl;
-  std::cout << std::format("FullName => {}",
-                           std::string{ValueName<static_cast<Enum>(0xF0F0F0F0)>()})
-            << std::endl;
+  std::cout << std::format("FullName => {}", std::string{ValueName<Enum::Ox00000001>()}) << std::endl;
+  std::cout << std::format("FullName => {}", std::string{ValueName<Enum::OxFFFFFFFF>()}) << std::endl;
+  std::cout << std::format("FullName => {}", std::string{ValueName<static_cast<Enum>(0xF0F0F0F0)>()}) << std::endl;
 
-  constexpr auto filtered_list =
-      GetEnumList<Enum, 0x00000000, 0x000000FF, GetNamePredicate, std::string_view>();
+  constexpr auto filtered_list = GetEnumList<Enum, 0x00000000, 0x000000FF, GetNamePredicate, std::string_view>();
   std::cout << std::format("Filtered list size: {}", filtered_list.size()) << std::endl;
   for (const auto& e : filtered_list) {
     std::cout << std::format("Filtered => {}", std::string(e)) << std::endl;
   }
 
-  constexpr auto filtered_value =
-      GetEnumList<Enum, 0x00000000, 0x000000FF, GetValuePredicate, Enum>();
+  constexpr auto filtered_value = GetEnumList<Enum, 0x00000000, 0x000000FF, GetValuePredicate, Enum>();
   std::cout << std::format("Filtered list size: {}", filtered_value.size()) << std::endl;
   for (const auto& e : filtered_value) {
     std::cout << std::format("Filtered => {:08X}", static_cast<int32_t>(e)) << std::endl;
   }
 
-  constexpr auto filtered_all_list =
-      GetEnumList_AllRanges<Enum, GetNamePredicate, std::string_view>();
-  std::cout << std::format("Filtered all ranges list size: {}", filtered_all_list.size())
-            << std::endl;
+  constexpr auto filtered_all_list = GetEnumList_AllRanges<Enum, GetNamePredicate, std::string_view>();
+  std::cout << std::format("Filtered all ranges list size: {}", filtered_all_list.size()) << std::endl;
   for (const auto& e : filtered_all_list) {
     std::cout << std::format("Filtered all ranges => {}", std::string(e)) << std::endl;
   }
