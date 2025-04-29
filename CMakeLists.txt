@@ -37,8 +37,8 @@ if(CMAKE_CXX_COMPILER EQUAL "clang++")
 endif()
 
 if(UNIX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
+  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
 endif()
 
 find_package(OpenCV)
@@ -74,4 +74,3 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 endif()
 
 add_subdirectory(src)
-# add_subdirectory(test)
