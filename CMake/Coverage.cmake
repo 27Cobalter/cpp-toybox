@@ -6,7 +6,9 @@ if(NOT GCOVR_EXECUTABLE OR NOT GCOV_EXECUTABLE)
   return()
 endif()
 
-set(CMAKE_CXX_FLAGS_COVERAGE "-O0 -g --coverage -fprofile-abs-path")
+set(CMAKE_CXX_FLAGS_COVERAGE
+    "-O0 -g --coverage -fprofile-abs-path -fprofile-exclude-files=\"build/*;test/*\""
+)
 set(CMAKE_EXE_LINKER_FLAGS_COVERAGE "--coverage")
 set(CMAKE_SHARED_LINKER_FLAGS_COVERAGE "--coverage")
 set(CMAKE_MODULE_LINKER_FLAGS_COVERAGE "--coverage")
