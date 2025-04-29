@@ -8,35 +8,31 @@
 #include <immintrin.h>
 #include <opencv2/core/core.hpp>
 
-template <>
-void Binning<Impl::Avx512UnrollAll>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,
-                                   uint32_t binning_y) {
+template<>
+void Binning<Impl::Avx512UnrollAll>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x, uint32_t binning_y) {
   Execute_Impl(binning_x, binning_y, src, dst);
 }
 
-template <>
-template <uint32_t BINNING_X, uint32_t BINNING_Y>
-void Binning<Impl::Avx512UnrollAll>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
-}
+template<>
+template<uint32_t BINNING_X, uint32_t BINNING_Y>
+void Binning<Impl::Avx512UnrollAll>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {}
 
-template <>
-template <>
+template<>
+template<>
 void Binning<Impl::Avx512UnrollAll>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst) {
   assert(src.cols == dst.cols);
   assert(src.rows == dst.rows);
   assert(src.type() == CV_16UC1);
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
-    for (auto x :
-         std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x,
-                          _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+    for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
     }
   }
 }
 
-template <>
-template <>
+template<>
+template<>
 void Binning<Impl::Avx512UnrollAll>::Execute_Impl<2, 2>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 2;
   constexpr uint32_t BINNING_Y = 2;
@@ -53,10 +49,9 @@ void Binning<Impl::Avx512UnrollAll>::Execute_Impl<2, 2>(const cv::Mat& src, cv::
 
   const int32_t src_step1 = src.step1();
 
-  const __m512i idx =
-      _mm512_set_epi16(32 | 30, 32 | 28, 32 | 26, 32 | 24, 32 | 22, 32 | 20, 32 | 18, 32 | 16,
-                       32 | 14, 32 | 12, 32 | 10, 32 | 8, 32 | 6, 32 | 4, 32 | 2, 32 | 0, 30,
-                       28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
+  const __m512i idx = _mm512_set_epi16(32 | 30, 32 | 28, 32 | 26, 32 | 24, 32 | 22, 32 | 20, 32 | 18, 32 | 16, 32 | 14,
+                                       32 | 12, 32 | 10, 32 | 8, 32 | 6, 32 | 4, 32 | 2, 32 | 0, 30, 28, 26, 24, 22, 20,
+                                       18, 16, 14, 12, 10, 8, 6, 4, 2, 0);
   for (auto y : std::views::iota(0, src.rows) | std::views::stride(BINNING_Y)) {
     uint16_t* dptry = dst.ptr<uint16_t>(y >> shift_y);
 
@@ -86,8 +81,8 @@ void Binning<Impl::Avx512UnrollAll>::Execute_Impl<2, 2>(const cv::Mat& src, cv::
   }
 }
 
-template <>
-template <>
+template<>
+template<>
 void Binning<Impl::Avx512UnrollAll>::Execute_Impl<4, 4>(const cv::Mat& src, cv::Mat& dst) {
   constexpr uint32_t BINNING_X = 4;
   constexpr uint32_t BINNING_Y = 4;
@@ -109,10 +104,9 @@ void Binning<Impl::Avx512UnrollAll>::Execute_Impl<4, 4>(const cv::Mat& src, cv::
   const int32_t src_step2   = src.step1() * 2;
   const int32_t src_step3   = src.step1() * 3;
 
-  const __m512i idx =
-      _mm512_set_epi16(32 | 30, 32 | 28, 32 | 22, 32 | 20, 32 | 14, 32 | 12, 32 | 6, 32 | 4,
-                       32 | 26, 32 | 24, 32 | 18, 32 | 16, 32 | 10, 32 | 8, 32 | 2, 32 | 0, 30,
-                       28, 22, 20, 14, 12, 6, 4, 26, 24, 18, 16, 10, 8, 2, 0);
+  const __m512i idx = _mm512_set_epi16(32 | 30, 32 | 28, 32 | 22, 32 | 20, 32 | 14, 32 | 12, 32 | 6, 32 | 4, 32 | 26,
+                                       32 | 24, 32 | 18, 32 | 16, 32 | 10, 32 | 8, 32 | 2, 32 | 0, 30, 28, 22, 20, 14,
+                                       12, 6, 4, 26, 24, 18, 16, 10, 8, 2, 0);
   for (auto y : std::views::iota(0, src.rows) | std::views::stride(BINNING_Y)) {
     uint16_t* dptry = dst.ptr<uint16_t>(y >> shift_y);
 

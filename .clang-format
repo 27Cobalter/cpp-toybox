@@ -3,7 +3,7 @@ BasedOnStyle: LLVM
 # Language:        Cpp
 # AccessModifierOffset: -2
 # AlignAfterOpenBracket: Align
-# AlignArrayOfStructures: None
+AlignArrayOfStructures: Left
 AlignConsecutiveAssignments:
   Enabled:         true
 #   AcrossEmptyLines: false
@@ -59,7 +59,7 @@ AlignConsecutiveAssignments:
 #   AlignCompound:   false
 #   AlignFunctionPointers: false
 #   PadOperators:    false
-# AlignEscapedNewlines: Right
+AlignEscapedNewlines: LeftWithLastLine
 # AlignOperands:   Align
 # AlignTrailingComments:
 #   Kind:            Always
@@ -72,8 +72,8 @@ AlignConsecutiveAssignments:
 # AllowShortCaseLabelsOnASingleLine: false
 # AllowShortCompoundRequirementOnASingleLine: true
 # AllowShortEnumsOnASingleLine: true
-# AllowShortFunctionsOnASingleLine: All
-# AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 # AllowShortLambdasOnASingleLine: All
 # AllowShortLoopsOnASingleLine: false
 # AlwaysBreakAfterDefinitionReturnType: None
@@ -177,7 +177,7 @@ ColumnLimit:     120
 #   AtStartOfBlock:  true
 #   AtStartOfFile:   true
 # LambdaBodyIndentation: Signature
-# LineEnding:      DeriveLF
+LineEnding:      LF
 # MacroBlockBegin: ''
 # MacroBlockEnd:   ''
 # MainIncludeChar: Quote

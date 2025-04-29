@@ -1,11 +1,11 @@
-#include <random>
-#include <chrono>
-#include <span>
-#include <cstdint>
-#include <memory>
-#include <ranges>
 #include <algorithm>
+#include <chrono>
+#include <cstdint>
 #include <iostream>
+#include <memory>
+#include <random>
+#include <ranges>
+#include <span>
 
 class StackHist {
 private:
@@ -58,7 +58,7 @@ auto main() -> int {
   std::uniform_int_distribution<> uni(0, 65535);
   constexpr int32_t data_size       = 8192 * 8192;
   std::shared_ptr<uint16_t[]> image = std::make_shared<uint16_t[]>(data_size);
-  uint16_t* iptr = image.get();
+  uint16_t* iptr                    = image.get();
   for (auto i : std::views::iota(0, data_size)) {
     image[i] = uni(engine);
   }
@@ -70,13 +70,13 @@ auto main() -> int {
 
   start = std::chrono::high_resolution_clock::now();
   sh.Calc(iptr, data_size);
-  end = std::chrono::high_resolution_clock::now();
+  end      = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
   std::cout << std::format("Stack: {}", duration) << std::endl;
 
   start = std::chrono::high_resolution_clock::now();
   hh.Calc(iptr, data_size);
-  end = std::chrono::high_resolution_clock::now();
+  end      = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
   std::cout << std::format("Stack: {}", duration) << std::endl;
   return 0;

@@ -3,8 +3,8 @@
 #include <gtest/gtest.h>
 #include <opencv2/core/core.hpp>
 
-#include <vhadd.h>
 #include <InstructionInfo.h>
+#include <vhadd.h>
 
 #pragma region GTestSettings
 struct Params {
@@ -17,18 +17,8 @@ struct Params {
 };
 
 auto TestValues = ::testing::Values(
-    Params{.width      = 2048,
-           .height     = 2048,
-           .offset_x   = 0,
-           .offset_y   = 0,
-           .horizontal = 2048,
-           .vertical   = 2048},
-    Params{.width      = 2048,
-           .height     = 2048,
-           .offset_x   = 0,
-           .offset_y   = 0,
-           .horizontal = 2048 / 2,
-           .vertical   = 2048 / 2},
+    Params{.width = 2048, .height = 2048, .offset_x = 0, .offset_y = 0, .horizontal = 2048, .vertical = 2048},
+    Params{.width = 2048, .height = 2048, .offset_x = 0, .offset_y = 0, .horizontal = 2048 / 2, .vertical = 2048 / 2},
     Params{.width      = 2048,
            .height     = 2048,
            .offset_x   = 2048 / 2,
@@ -41,16 +31,9 @@ auto TestValues = ::testing::Values(
            .offset_y   = 333 / 2,
            .horizontal = 333 / 2,
            .vertical   = 333 / 2},
-    Params{.width      = 335,
-           .height     = 157,
-           .offset_x   = 129,
-           .offset_y   = 23,
-           .horizontal = 133,
-           .vertical   = 111},
-    Params{
-        .width = 9, .height = 9, .offset_x = 0, .offset_y = 0, .horizontal = 9, .vertical = 9},
-    Params{
-        .width = 2, .height = 2, .offset_x = 0, .offset_y = 0, .horizontal = 2, .vertical = 2});
+    Params{.width = 335, .height = 157, .offset_x = 129, .offset_y = 23, .horizontal = 133, .vertical = 111},
+    Params{.width = 9, .height = 9, .offset_x = 0, .offset_y = 0, .horizontal = 9, .vertical = 9},
+    Params{.width = 2, .height = 2, .offset_x = 0, .offset_y = 0, .horizontal = 2, .vertical = 2});
 
 class MultiParam : public ::testing::TestWithParam<Params> {
 protected:
@@ -61,9 +44,8 @@ protected:
 INSTANTIATE_TEST_CASE_P(, MultiParam, TestValues);
 
 ::std::ostream& operator<<(::std::ostream& os, const Params param) {
-  return os << std::format("{{w={}, h={}, rect(x={}, y={}, h={}, v={})}}", param.width,
-                           param.height, param.offset_x, param.offset_y, param.horizontal,
-                           param.vertical);
+  return os << std::format("{{w={}, h={}, rect(x={}, y={}, h={}, v={})}}", param.width, param.height, param.offset_x,
+                           param.offset_y, param.horizontal, param.vertical);
 }
 #pragma endregion GTestSettings
 
@@ -88,9 +70,8 @@ TEST_P(MultiParam, CalcV_Naive) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcV_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
-                                                            param.offset_x, param.offset_y,
-                                                            param.horizontal, param.vertical);
+    auto result = profiler.CalcV_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height, param.offset_x,
+                                                            param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, i + param.offset_x);
@@ -108,9 +89,8 @@ TEST_P(MultiParam, CalcH_Naive) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcH_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height,
-                                                            param.offset_x, param.offset_y,
-                                                            param.horizontal, param.vertical);
+    auto result = profiler.CalcH_Impl<VHAdd::Method::Naive>(sptr, param.width * param.height, param.offset_x,
+                                                            param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
@@ -129,8 +109,7 @@ TEST_P(MultiParam, CalcVH_Naive) {
 
   for (auto _ : std::views::iota(0, 2)) {
     auto [result_v, result_h] = profiler.CalcVH_Impl<VHAdd::Method::Naive>(
-        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal,
-        param.vertical);
+        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
@@ -156,9 +135,8 @@ TEST_P(MultiParam, CalcH_Avx2) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcV_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
-                                                           param.offset_x, param.offset_y,
-                                                           param.horizontal, param.vertical);
+    auto result = profiler.CalcV_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height, param.offset_x,
+                                                           param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, i + param.offset_x);
@@ -178,9 +156,8 @@ TEST_P(MultiParam, CalcV_Avx2) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcH_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height,
-                                                           param.offset_x, param.offset_y,
-                                                           param.horizontal, param.vertical);
+    auto result = profiler.CalcH_Impl<VHAdd::Method::AVX2>(sptr, param.width * param.height, param.offset_x,
+                                                           param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
@@ -201,8 +178,7 @@ TEST_P(MultiParam, CalcVH_Avx2) {
 
   for (auto _ : std::views::iota(0, 2)) {
     auto [result_v, result_h] = profiler.CalcVH_Impl<VHAdd::Method::AVX2>(
-        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal,
-        param.vertical);
+        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {
@@ -228,9 +204,8 @@ TEST_P(MultiParam, CalcH_Avx512) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcV_Impl<VHAdd::Method::AVX512>(sptr, param.width * param.height,
-                                                             param.offset_x, param.offset_y,
-                                                             param.horizontal, param.vertical);
+    auto result = profiler.CalcV_Impl<VHAdd::Method::AVX512>(sptr, param.width * param.height, param.offset_x,
+                                                             param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.horizontal);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, i + param.offset_x);
@@ -250,9 +225,8 @@ TEST_P(MultiParam, CalcV_Avx512) {
   VHAdd profiler(param.width, param.height);
 
   for (auto _ : std::views::iota(0, 2)) {
-    auto result = profiler.CalcH_Impl<VHAdd::Method::AVX512>(sptr, param.width * param.height,
-                                                             param.offset_x, param.offset_y,
-                                                             param.horizontal, param.vertical);
+    auto result = profiler.CalcH_Impl<VHAdd::Method::AVX512>(sptr, param.width * param.height, param.offset_x,
+                                                             param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result)) {
       ASSERT_EQ(elem, param.offset_x + ((param.horizontal - 1) / 2));
@@ -273,8 +247,7 @@ TEST_P(MultiParam, CalcVH_Avx512) {
 
   for (auto _ : std::views::iota(0, 2)) {
     auto [result_v, result_h] = profiler.CalcVH_Impl<VHAdd::Method::AVX512>(
-        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal,
-        param.vertical);
+        sptr, param.width * param.height, param.offset_x, param.offset_y, param.horizontal, param.vertical);
     ASSERT_EQ(result_v.size(), param.horizontal);
     ASSERT_EQ(result_h.size(), param.vertical);
     for (auto [i, elem] : std::views::enumerate(result_v)) {

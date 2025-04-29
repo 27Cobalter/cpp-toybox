@@ -6,15 +6,14 @@
 #include <ranges>
 #include <vector>
 
-#define measure_start()                                     \
-  {                                                         \
-    auto start = std::chrono::high_resolution_clock::now(); \
+#define measure_start()                                                \
+  {                                                                    \
+    auto start = std::chrono::high_resolution_clock::now();            \
     for (auto measure_i = 0; measure_i < measure_count; measure_i++) {
-#define measure_end()                                                                     \
-  }                                                                                       \
-  auto end = std::chrono::high_resolution_clock::now();                                   \
-  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() \
-            << std::endl;                                                                 \
+#define measure_end()                                                                                   \
+  }                                                                                                     \
+  auto end = std::chrono::high_resolution_clock::now();                                                 \
+  std::cout << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() << std::endl; \
   }
 
 constexpr int32_t measure_count = 1000;

@@ -6,7 +6,7 @@
 #include <immintrin.h>
 #include <omp.h>
 
-template <>
+template<>
 void MyHisto::Create_Impl<MyHisto::Method::Naive>(uint16_t* source, int32_t data_size) {
   std::ranges::fill(histo_, 0);
 #pragma unroll
@@ -18,7 +18,7 @@ void MyHisto::Create_Impl<MyHisto::Method::Naive>(uint16_t* source, int32_t data
   }
 }
 
-template <>
+template<>
 void MyHisto::Create_Impl<MyHisto::Method::NaiveUnroll>(uint16_t* source, int32_t data_size) {
   std::ranges::fill(histo_, 0);
 #pragma unroll
@@ -34,9 +34,8 @@ void MyHisto::Create_Impl<MyHisto::Method::NaiveUnroll>(uint16_t* source, int32_
   }
 }
 
-template <>
-void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source,
-                                                            int32_t data_size) {
+template<>
+void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source, int32_t data_size) {
   std::ranges::fill(histo_, 0);
 
   constexpr int32_t step         = 512 / 8 / sizeof(uint16_t);
@@ -69,9 +68,8 @@ void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source,
   }
 }
 
-template <>
-void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(uint16_t* source,
-                                                                  int32_t data_size) {
+template<>
+void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(uint16_t* source, int32_t data_size) {
   std::ranges::fill(histo_, 0);
   __m512i src_v = _mm512_stream_load_si512(source);
 
@@ -108,9 +106,8 @@ void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(uint16_t* sour
 }
 
 // TODO: Multi Naive + Naive Conv
-template <>
-void MyHisto::Create_Impl<MyHisto::Method::Naive_MultiSubloop>(uint16_t* source,
-                                                               int32_t data_size) {
+template<>
+void MyHisto::Create_Impl<MyHisto::Method::Naive_MultiSubloop>(uint16_t* source, int32_t data_size) {
   const int32_t range_max     = histo_.size();
   const int32_t sub_data_end  = data_size / parallel_size_;
   const int32_t sub_range_end = range_max / parallel_size_;

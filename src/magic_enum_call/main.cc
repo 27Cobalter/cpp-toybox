@@ -1,5 +1,5 @@
-#include <magic_enum/magic_enum.hpp>
 #include <iostream>
+#include <magic_enum/magic_enum.hpp>
 
 // https://github.com/Neargye/magic_enum?tab=readme-ov-file#features--examples
 // https://github.com/Neargye/magic_enum/blob/master/doc/limitations.md

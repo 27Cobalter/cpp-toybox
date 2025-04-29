@@ -14,7 +14,7 @@
 
 #include <opencv2/opencv.hpp>
 
-template <typename T, typename U>
+template<typename T, typename U>
   requires std::convertible_to<T, double> && std::convertible_to<U, double>
 double CalcMse(std::span<T> t, std::span<U> u) {
   assert(t.size() == u.size());
@@ -48,10 +48,9 @@ auto main() -> int {
   auto src_ptr = std::make_shared<uint16_t[]>(resolution_list.max() * resolution_list.max());
   auto ref_ptr = std::make_shared<int32_t[]>(RANGE_SIZE);
 #else
-  auto src_ptr = std::shared_ptr<uint16_t[]>(new (
-      std::align_val_t(ALIGN_SIZE)) uint16_t[resolution_list.max() * resolution_list.max()]);
-  auto ref_ptr =
-      std::shared_ptr<int32_t[]>(new (std::align_val_t(ALIGN_SIZE)) int32_t[RANGE_SIZE]);
+  auto src_ptr = std::shared_ptr<uint16_t[]>(new (std::align_val_t(ALIGN_SIZE))
+                                                 uint16_t[resolution_list.max() * resolution_list.max()]);
+  auto ref_ptr = std::shared_ptr<int32_t[]>(new (std::align_val_t(ALIGN_SIZE)) int32_t[RANGE_SIZE]);
 #endif
   std::span<int32_t> ref(ref_ptr.get(), RANGE_SIZE);
 
@@ -80,8 +79,7 @@ auto main() -> int {
       myhisto.Create_Impl<MyHisto::Method::Naive>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
@@ -89,8 +87,7 @@ auto main() -> int {
       myhisto.Create_Impl<MyHisto::Method::NaiveUnroll>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
@@ -98,8 +95,7 @@ auto main() -> int {
       myhisto.Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
@@ -107,8 +103,7 @@ auto main() -> int {
       myhisto.Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ_Order>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     start = std::chrono::high_resolution_clock::now();
@@ -116,8 +111,7 @@ auto main() -> int {
       myhisto.Create_Impl<MyHisto::Method::Naive_MultiSubloop>(src.data(), src.size());
     }
     end = std::chrono::high_resolution_clock::now();
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-              << std::endl;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() << std::endl;
     std::cout << CalcMse(myhisto.histo_, ref) << std::endl;
 
     // for (int i = 0; i < RANGE_SIZE; i++) {

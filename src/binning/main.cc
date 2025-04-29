@@ -4,12 +4,12 @@
 #include <ranges>
 
 #include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 #include "binning.h"
 
-template <int32_t X, int32_t Y>
+template<int32_t X, int32_t Y>
 void PrintValue(const cv::Mat& src) {
   std::println("{}x{}", X, Y);
   for (auto y : std::views::iota(0, Y)) {
@@ -39,14 +39,12 @@ auto main() -> int {
   std::fill(dst4x4.begin<uint16_t>(), dst4x4.end<uint16_t>(), 0); \
   start = std::chrono::high_resolution_clock::now();              \
   for (auto i : std::views::iota(0, loop_time)) {
-#define MEASURE_END()                                                                   \
-  }                                                                                     \
-  end = std::chrono::high_resolution_clock::now();                                      \
-  std::println(                                                                         \
-      "{:6.3f}",                                                                        \
-      static_cast<double>(                                                              \
-          std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) / \
-          loop_time / 1000);
+#define MEASURE_END()                                                                                            \
+  }                                                                                                              \
+  end = std::chrono::high_resolution_clock::now();                                                               \
+  std::println("{:6.3f}",                                                                                        \
+               static_cast<double>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) / \
+                   loop_time / 1000);
 
   cv::Mat dst1x1 = cv::Mat(src.size() / 1, src.type());
   cv::Mat dst2x2 = cv::Mat(src.size() / 2, src.type());

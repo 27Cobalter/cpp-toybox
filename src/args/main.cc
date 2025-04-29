@@ -1,7 +1,7 @@
-#include <print>
-#include <vector>
-#include <ranges>
 #include <chrono>
+#include <print>
+#include <ranges>
+#include <vector>
 
 #ifdef _MSC_VER
 #define NOINLINE __declspec(noinline)
@@ -9,37 +9,37 @@
 #define NOINLINE
 #endif
 
-template <int32_t size>
+template<int32_t size>
 struct Test {
   uint8_t data[size];
 };
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t CopyFunc(Test<size> test) {
   return test.data[0];
 }
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t RefFunc(Test<size>& test) {
   return test.data[0];
 }
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t PtrFunc(Test<size>* test) {
   return test->data[0];
 }
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t ConstCopyFunc(const Test<size> test) {
   return test.data[0];
 }
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t ConstRefFunc(const Test<size>& test) {
   return test.data[0];
 }
 
-template <int32_t size>
+template<int32_t size>
 NOINLINE int32_t ConstPtrFunc(const Test<size>* test) {
   return test->data[0];
 }
@@ -48,24 +48,24 @@ auto main() -> int {
   constexpr int32_t iter = 100000;
   constexpr int32_t loop = 1000;
 
-  double time[24] = {0};
-  Test<1> size01  = {0};
-  Test<16> size16    = {0};
-  Test<32> size32    = {0};
+  double time[24]     = {0};
+  Test<1> size01      = {0};
+  Test<16> size16     = {0};
+  Test<32> size32     = {0};
   Test<2048> size2048 = {0};
-  int32_t sum    = 0;
+  int32_t sum         = 0;
 
   std::chrono::high_resolution_clock::time_point start, end;
 
   for (auto it : std::views::iota(0, iter)) {
     int i = 0;
 
-#define MEASURE_MACRO(x, y)                          \
-  start = std::chrono::high_resolution_clock::now(); \
-  for (auto lo : std::views::iota(0, loop)) {        \
-    sum += x(y);                                     \
-  }                                                  \
-  end = std::chrono::high_resolution_clock::now();   \
+#define MEASURE_MACRO(x, y)                                                                \
+  start = std::chrono::high_resolution_clock::now();                                       \
+  for (auto lo : std::views::iota(0, loop)) {                                              \
+    sum += x(y);                                                                           \
+  }                                                                                        \
+  end = std::chrono::high_resolution_clock::now();                                         \
   time[i++] += std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 
     MEASURE_MACRO(CopyFunc, size01);

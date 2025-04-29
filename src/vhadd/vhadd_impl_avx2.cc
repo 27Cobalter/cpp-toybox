@@ -1,8 +1,8 @@
 #include "vhadd.h"
 
-#include <expected>
 #include <algorithm>
 #include <cassert>
+#include <expected>
 #include <ranges>
 
 #include <immintrin.h>
@@ -13,10 +13,9 @@ constexpr VHAdd::Method VMA2V = VHAdd::Method::AVX2_Vertical;
 constexpr int32_t step      = 256 / 8 / sizeof(uint16_t);
 constexpr int32_t half_step = step >> 1;
 
-template <>
-std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x,
-                                            int32_t offset_y, int32_t horizontal,
-                                            int32_t vertical) {
+template<>
+std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y,
+                                            int32_t horizontal, int32_t vertical) {
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);
@@ -56,10 +55,9 @@ std::span<uint16_t> VHAdd::CalcV_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
   return result_slice_[0];
 }
 
-template <>
-std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x,
-                                            int32_t offset_y, int32_t horizontal,
-                                            int32_t vertical) {
+template<>
+std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y,
+                                            int32_t horizontal, int32_t vertical) {
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);
@@ -92,11 +90,9 @@ std::span<uint16_t> VHAdd::CalcH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t
   return result_slice_[1];
 }
 
-template <>
-std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32_t size,
-                                                            int32_t offset_x, int32_t offset_y,
-                                                            int32_t horizontal,
-                                                            int32_t vertical) {
+template<>
+std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32_t size, int32_t offset_x,
+                                                            int32_t offset_y, int32_t horizontal, int32_t vertical) {
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);
@@ -133,11 +129,11 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
     __m256i vailo   = _mm256_loadu_epi32(vaptri);             // v
     __m256i vaihi   = _mm256_loadu_epi32(vaptri + half_step); // v
 
-    __m256i cross = _mm256_shuffle_epi32(acc, _MM_SHUFFLE(1, 0, 3, 2));                    // h
-    acc           = _mm256_add_epi32(acc, cross);                                          // h
-    cross         = _mm256_shuffle_epi32(acc, _MM_SHUFFLE(2, 3, 0, 1));                    // h
-    acc           = _mm256_add_epi32(acc, cross);                                          // h
-    int32_t v = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4]; // h
+    __m256i cross = _mm256_shuffle_epi32(acc, _MM_SHUFFLE(1, 0, 3, 2));                        // h
+    acc           = _mm256_add_epi32(acc, cross);                                              // h
+    cross         = _mm256_shuffle_epi32(acc, _MM_SHUFFLE(2, 3, 0, 1));                        // h
+    acc           = _mm256_add_epi32(acc, cross);                                              // h
+    int32_t v     = reinterpret_cast<int32_t*>(&acc)[0] + reinterpret_cast<int32_t*>(&acc)[4]; // h
 
     // for vertical padding calc
     __m256i lo = _mm256_unpacklo_epi16(spji, zero_v); // v
@@ -167,10 +163,9 @@ std::array<std::span<uint16_t>, 2> VHAdd::CalcVH_Impl<VMA2>(uint16_t* src, int32
   return result_slice_;
 }
 
-template <>
-std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_t offset_x,
-                                             int32_t offset_y, int32_t horizontal,
-                                             int32_t vertical) {
+template<>
+std::span<uint16_t> VHAdd::CalcV_Impl<VMA2V>(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y,
+                                             int32_t horizontal, int32_t vertical) {
   assert(width_ * height_ == size);
   assert((offset_x + horizontal) <= width_);
   assert((offset_y + vertical) <= height_);

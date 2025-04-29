@@ -7,7 +7,7 @@
 
 constexpr int32_t AVX512_U16_SIZE = 512 / 8 / sizeof(uint16_t);
 
-template <typename T>
+template<typename T>
 std::shared_ptr<T[]> make_aligned_array(int32_t size) {
 #ifdef _MSC_VER
   return std::make_shared<T[]>(size);

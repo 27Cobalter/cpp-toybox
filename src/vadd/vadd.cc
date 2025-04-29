@@ -1,10 +1,10 @@
 #include <chrono>
-#include <valarray>
 #include <format>
 #include <iostream>
 #include <memory>
 #include <random>
 #include <ranges>
+#include <valarray>
 
 #include <immintrin.h>
 #include <omp.h>
@@ -21,8 +21,7 @@ auto main() -> int {
   int32_t data_size = 4096;
 
   constexpr int32_t align_size = 512;
-  std::shared_ptr<float[]> data(
-      new (std::align_val_t(align_size)) float[data_size * data_size]);
+  std::shared_ptr<float[]> data(new (std::align_val_t(align_size)) float[data_size * data_size]);
   std::shared_ptr<float[]> result(new (std::align_val_t(align_size)) float[data_size]);
   float* sptr = data.get();
   float* dptr = result.get();
@@ -49,10 +48,8 @@ auto main() -> int {
     }
   }
   auto end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -68,10 +65,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -92,10 +87,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -117,10 +110,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -141,10 +132,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -165,10 +154,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -195,10 +182,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -226,10 +211,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
   std::cout << "omp ij loop" << std::endl;
@@ -248,13 +231,10 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
-  std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum())
-            << std::endl; /*}}}*/
+  std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl; /*}}}*/
 
   std::cout << "omp iji loop" << std::endl;
   current_loop = fast_loop;
@@ -278,10 +258,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -307,10 +285,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -336,10 +312,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -365,10 +339,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -392,10 +364,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -425,10 +395,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -454,10 +422,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -486,10 +452,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -524,10 +488,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -574,10 +536,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
 
@@ -624,10 +584,8 @@ auto main() -> int {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::cout << std::format(
-                   "time: {} us",
-                   std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() /
-                       current_loop)
+  std::cout << std::format("time: {} us",
+                           std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / current_loop)
             << std::endl;
   std::cout << std::format("sum: {}", std::valarray<float>(dptr, data_size).sum()) << std::endl;
   return 0;

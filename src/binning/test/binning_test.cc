@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
+#include <print>
 #include <random>
 #include <ranges>
-#include <print>
 
 #include <opencv2/core/core.hpp>
 
@@ -12,54 +12,54 @@ enum class TestData { max, seq, rand };
 
 void PrintTo(const TestData& t, std::ostream* os) {
   switch (t) {
-    case (TestData::max):
-      *os << "TestData::max";
-      break;
-    case (TestData::seq):
-      *os << "TestData::seq";
-      break;
-    case (TestData::rand):
-      *os << "TestData::rand";
-      break;
-    default:
-      assert(false);
-      *os << "Unknown";
-      break;
+  case (TestData::max):
+    *os << "TestData::max";
+    break;
+  case (TestData::seq):
+    *os << "TestData::seq";
+    break;
+  case (TestData::rand):
+    *os << "TestData::rand";
+    break;
+  default:
+    assert(false);
+    *os << "Unknown";
+    break;
   }
 }
 
 void PrintTo(const Impl& impl, std::ostream* os) {
   switch (impl) {
-    case (Impl::None):
-      *os << "Impl::None";
-      break;
-    case (Impl::Naive):
-      *os << "Impl::Naive";
-      break;
-    case (Impl::SeqRead):
-      *os << "Impl::SeqRead";
-      break;
-    case (Impl::Avx512):
-      *os << "Impl::Avx512";
-      break;
-    case (Impl::Avx512UnrollAll):
-      *os << "Impl::Avx512UnrollAll";
-      break;
-    case (Impl::Avx512UnrollX):
-      *os << "Impl::Avx512UnrollX";
-      break;
-    case (Impl::Avx512UnrollLoad):
-      *os << "Impl::Avx512UnrollLoad";
-      break;
-    case (Impl::Avx512Seq):
-      *os << "Impl::Avx512Seq";
-      break;
-    case (Impl::Avx512SeqBuffer):
-      *os << "Impl::Avx512SeqBuffer";
-      break;
-    default:
-      assert(false);
-      *os << "Unknown";
+  case (Impl::None):
+    *os << "Impl::None";
+    break;
+  case (Impl::Naive):
+    *os << "Impl::Naive";
+    break;
+  case (Impl::SeqRead):
+    *os << "Impl::SeqRead";
+    break;
+  case (Impl::Avx512):
+    *os << "Impl::Avx512";
+    break;
+  case (Impl::Avx512UnrollAll):
+    *os << "Impl::Avx512UnrollAll";
+    break;
+  case (Impl::Avx512UnrollX):
+    *os << "Impl::Avx512UnrollX";
+    break;
+  case (Impl::Avx512UnrollLoad):
+    *os << "Impl::Avx512UnrollLoad";
+    break;
+  case (Impl::Avx512Seq):
+    *os << "Impl::Avx512Seq";
+    break;
+  case (Impl::Avx512SeqBuffer):
+    *os << "Impl::Avx512SeqBuffer";
+    break;
+  default:
+    assert(false);
+    *os << "Unknown";
   }
 }
 
@@ -72,16 +72,14 @@ auto TESTIMPL  = ::testing::Values(std::make_shared<Binning<Impl::SeqRead>>(),
                                    std::make_shared<Binning<Impl::Avx512UnrollX>>(),
                                    std::make_shared<Binning<Impl::Avx512UnrollLoad>>(),
                                    // std::make_shared<Binning<Impl::Avx512Seq>>(),
-                                   std::make_shared<Binning<Impl::Avx512SeqBuffer>>()
- );
+                                   std::make_shared<Binning<Impl::Avx512SeqBuffer>>());
 auto BINNING_X = ::testing::Values(1, 2, 4);
 auto BINNING_Y = ::testing::Values(1, 2, 4);
 auto TESTDATA  = ::testing::Values(TestData::max, TestData::seq, TestData::rand);
 
 using TestParams = std::tuple<std::shared_ptr<BinningBase>, uint32_t, uint32_t, TestData>;
 class BINNING_TEST : public ::testing::TestWithParam<TestParams> {};
-INSTANTIATE_TEST_CASE_P(, BINNING_TEST,
-                        ::testing::Combine(TESTIMPL, BINNING_X, BINNING_Y, TESTDATA));
+INSTANTIATE_TEST_CASE_P(, BINNING_TEST, ::testing::Combine(TESTIMPL, BINNING_X, BINNING_Y, TESTDATA));
 
 constexpr int32_t width  = 4096;
 constexpr int32_t height = 4096;
@@ -124,8 +122,7 @@ TEST_P(BINNING_TEST, Normal) {
   const auto test_pattern = std::get<3>(params);
 
   cv::Mat src = CreateTestData(test_pattern);
-  cv::Mat ref =
-      cv::Mat::zeros(cv::Size(src.cols / binning_x, src.rows / binning_y), src.type());
+  cv::Mat ref = cv::Mat::zeros(cv::Size(src.cols / binning_x, src.rows / binning_y), src.type());
   cv::Mat dst = ref.clone();
 
   Binning<Impl::Naive> ref_impl;
@@ -134,8 +131,7 @@ TEST_P(BINNING_TEST, Normal) {
 
   for (auto y : std::views::iota(0, ref.rows)) {
     for (auto x : std::views::iota(0, ref.cols)) {
-      ASSERT_EQ(ref.ptr<uint16_t>(y)[x], dst.ptr<uint16_t>(y)[x])
-          << std::format("(y, x)=({}, {})", y, x);
+      ASSERT_EQ(ref.ptr<uint16_t>(y)[x], dst.ptr<uint16_t>(y)[x]) << std::format("(y, x)=({}, {})", y, x);
     }
   }
 }

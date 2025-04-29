@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-template <>
+template<>
 void LUT::Create_Impl<LUT::Method::naive_lut>(int32_t lut_min, int32_t lut_max) {
   uint32_t* lptr = lut_.get();
   float coeff    = 256.0 / (lut_max - lut_min + 1);
@@ -11,7 +11,7 @@ void LUT::Create_Impl<LUT::Method::naive_lut>(int32_t lut_min, int32_t lut_max) 
   }
 }
 
-template <>
+template<>
 void LUT::Convert_Impl<LUT::Method::naive_lut>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   uint32_t* lptr = lut_.get();
   for (int i = 0; i < data_size; i++) {
@@ -19,16 +19,15 @@ void LUT::Convert_Impl<LUT::Method::naive_lut>(uint16_t* src, uint8_t* dst, int3
   }
 }
 
-template <>
+template<>
 void LUT::Create_Impl<LUT::Method::naive_calc>(int32_t lut_min, int32_t lut_max) {
   coeff_   = 256.0 / (lut_max - lut_min + 1);
   lut_min_ = lut_min;
   lut_max_ = lut_max;
 }
 
-template <>
-void LUT::Convert_Impl<LUT::Method::naive_calc>(uint16_t* src, uint8_t* dst,
-                                                int32_t data_size) {
+template<>
+void LUT::Convert_Impl<LUT::Method::naive_calc>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   for (int i = 0; i < data_size; i++) {
     dst[i] = std::clamp(static_cast<int32_t>(coeff_ * (src[i] - lut_min_)), 0, 255);
   }

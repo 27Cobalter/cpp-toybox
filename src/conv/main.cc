@@ -1,6 +1,6 @@
-#include <ranges>
-#include <print>
 #include <chrono>
+#include <print>
+#include <ranges>
 
 #include <omp.h>
 #include <opencv2/opencv.hpp>
@@ -22,11 +22,10 @@ auto main() -> int32_t {
 
   auto start = std::chrono::high_resolution_clock::now();
   for (auto t : std::views::iota(0, loop)) {
-	  cv::filter2D(img, img, CV_16UC1, kernel, cv::Point(-1, -1), 0, cv::BORDER_DEFAULT);
+    cv::filter2D(img, img, CV_16UC1, kernel, cv::Point(-1, -1), 0, cv::BORDER_DEFAULT);
   }
   auto end = std::chrono::high_resolution_clock::now();
-  std::println("Time taken: {} ms",
-               std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+  std::println("Time taken: {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
   start = std::chrono::high_resolution_clock::now();
   for (auto t : std::views::iota(0, loop)) {
@@ -38,8 +37,7 @@ auto main() -> int32_t {
         kernel_sum += kernel.at<uint16_t>(i, j);
       }
     }
-    cv::copyMakeBorder(img, pad, kernel_half, kernel_half, kernel_half, kernel_half,
-                       cv::BORDER_REFLECT);
+    cv::copyMakeBorder(img, pad, kernel_half, kernel_half, kernel_half, kernel_half, cv::BORDER_REFLECT);
 
 #pragma omp parallel for
     for (int32_t i = 0; i < img.rows; i++) {
@@ -58,8 +56,7 @@ auto main() -> int32_t {
     }
   }
   end = std::chrono::high_resolution_clock::now();
-  std::println("Time taken: {} ms",
-               std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
+  std::println("Time taken: {} ms", std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count());
 
   return 0;
 }

@@ -1,10 +1,10 @@
-#include <chrono>
 #include <cassert>
+#include <chrono>
 #include <format>
 #include <iostream>
+#include <numeric>
 #include <random>
 #include <ranges>
-#include <numeric>
 
 #include <inter_branch.h>
 
@@ -87,14 +87,12 @@ auto main() -> int32_t {
 
     start = std::chrono::high_resolution_clock::now();
     for (auto loop : std::views::iota(0, loop_count)) {
-      inter.MultiOpInt(srli, slli, add, sub, bor, band, data_size, sptr, a1p[loop], b1p[loop],
-                       c1p[loop], d1p[loop], e1p[loop], f1p[loop]);
+      inter.MultiOpInt(srli, slli, add, sub, bor, band, data_size, sptr, a1p[loop], b1p[loop], c1p[loop], d1p[loop],
+                       e1p[loop], f1p[loop]);
     }
     end = std::chrono::high_resolution_clock::now();
     double lap_int =
-        static_cast<float>(
-            std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) /
-        loop_count;
+        static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) / loop_count;
     if ((it & 0b111111) == 0b111111) {
       total_int += lap_int;
       std::cout << std::format("lap_int: {}, total_int: {}", lap_int, total_int) << std::endl;
@@ -102,14 +100,12 @@ auto main() -> int32_t {
 
     start = std::chrono::high_resolution_clock::now();
     for (auto loop : std::views::iota(0, loop_count)) {
-      inter.MultiOpExt(srli, slli, add, sub, bor, band, data_size, sptr, a2p[loop], b2p[loop],
-                       c2p[loop], d2p[loop], e2p[loop], f2p[loop]);
+      inter.MultiOpExt(srli, slli, add, sub, bor, band, data_size, sptr, a2p[loop], b2p[loop], c2p[loop], d2p[loop],
+                       e2p[loop], f2p[loop]);
     }
     end = std::chrono::high_resolution_clock::now();
     double lap_ext =
-        static_cast<float>(
-            std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) /
-        loop_count;
+        static_cast<float>(std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()) / loop_count;
     if ((it & 0b111111) == 0b111111) {
       total_ext += lap_ext;
       std::cout << std::format("lap_ext: {}, total_ext: {}", lap_ext, total_ext) << std::endl;
@@ -117,18 +113,12 @@ auto main() -> int32_t {
   }
 
   for (auto i : std::views::iota(0, loop_count)) {
-    if (a1p[i] != a2p[i])
-      std::cout << std::format("[{}] a1p({}) != a2p({})", i, a1p[i], a2p[i]) << std::endl;
-    if (b1p[i] != b2p[i])
-      std::cout << std::format("[{}] b1p({}) != b2p({})", i, b1p[i], b2p[i]) << std::endl;
-    if (c1p[i] != c2p[i])
-      std::cout << std::format("[{}] c1p({}) != c2p({})", i, c1p[i], c2p[i]) << std::endl;
-    if (d1p[i] != d2p[i])
-      std::cout << std::format("[{}] d1p({}) != d2p({})", i, d1p[i], d2p[i]) << std::endl;
-    if (e1p[i] != e2p[i])
-      std::cout << std::format("[{}] e1p({}) != e2p({})", i, e1p[i], e2p[i]) << std::endl;
-    if (f1p[i] != f2p[i])
-      std::cout << std::format("[{}] f1p({}) != f2p({})", i, f1p[i], f2p[i]) << std::endl;
+    if (a1p[i] != a2p[i]) std::cout << std::format("[{}] a1p({}) != a2p({})", i, a1p[i], a2p[i]) << std::endl;
+    if (b1p[i] != b2p[i]) std::cout << std::format("[{}] b1p({}) != b2p({})", i, b1p[i], b2p[i]) << std::endl;
+    if (c1p[i] != c2p[i]) std::cout << std::format("[{}] c1p({}) != c2p({})", i, c1p[i], c2p[i]) << std::endl;
+    if (d1p[i] != d2p[i]) std::cout << std::format("[{}] d1p({}) != d2p({})", i, d1p[i], d2p[i]) << std::endl;
+    if (e1p[i] != e2p[i]) std::cout << std::format("[{}] e1p({}) != e2p({})", i, e1p[i], e2p[i]) << std::endl;
+    if (f1p[i] != f2p[i]) std::cout << std::format("[{}] f1p({}) != f2p({})", i, f1p[i], f2p[i]) << std::endl;
   }
 
   return 0;

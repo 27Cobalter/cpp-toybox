@@ -3,9 +3,8 @@
 
 #include <immintrin.h>
 
-template <>
-void LUT::Convert_Impl<LUT::Method::avx512f_lut>(uint16_t* src, uint8_t* dst,
-                                                 int32_t data_size) {
+template<>
+void LUT::Convert_Impl<LUT::Method::avx512f_lut>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
   int32_t* lptr               = reinterpret_cast<int32_t*>(lut_.get());
@@ -34,9 +33,8 @@ void LUT::Convert_Impl<LUT::Method::avx512f_lut>(uint16_t* src, uint8_t* dst,
   }
 }
 
-template <> // requires AVX-512f
-void LUT::Convert_Impl<LUT::Method::avx512f_calc>(uint16_t* src, uint8_t* dst,
-                                                  int32_t data_size) {
+template<> // requires AVX-512f
+void LUT::Convert_Impl<LUT::Method::avx512f_calc>(uint16_t* src, uint8_t* dst, int32_t data_size) {
   constexpr int32_t step      = 512 / 8 / sizeof(uint8_t);
   constexpr int32_t half_step = step >> 1;
 

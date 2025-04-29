@@ -14,15 +14,15 @@
 
 #include "lut.h"
 
-template <typename T, typename U>
+template<typename T, typename U>
   requires std::convertible_to<T, float> && std::convertible_to<U, float>
 float CalcDiff(T* t, U* u, int32_t data_size) {
   float diff = 0;
   for (auto i : std::views::iota(0, data_size)) {
     diff += (t[i] - u[i]) * (t[i] - u[i]);
     if (std::abs(static_cast<int32_t>(t[i] - u[i])) >= 2) {
-      std::cout << i << ": " << static_cast<int32_t>(t[i]) << ", " << static_cast<int32_t>(u[i])
-                << ", " << std::abs(static_cast<int32_t>(t[i] - u[i])) << std::endl;
+      std::cout << i << ": " << static_cast<int32_t>(t[i]) << ", " << static_cast<int32_t>(u[i]) << ", "
+                << std::abs(static_cast<int32_t>(t[i] - u[i])) << std::endl;
       // assert(std::abs(static_cast<int32_t>(t[i] - u[i])) < 2);
     }
   }
@@ -52,12 +52,9 @@ auto main() -> int {
   std::shared_ptr<uint8_t[]> dst(new uint8_t[width_samples.max() * width_samples.max()]);
   std::shared_ptr<uint8_t[]> ref(new uint8_t[width_samples.max() * width_samples.max()]);
 #else
-  std::shared_ptr<uint16_t[]> src(new (std::align_val_t(64))
-                                      uint16_t[width_samples.max() * width_samples.max()]);
-  std::shared_ptr<uint8_t[]> dst(new (std::align_val_t(64))
-                                     uint8_t[width_samples.max() * width_samples.max()]);
-  std::shared_ptr<uint8_t[]> ref(new (std::align_val_t(64))
-                                     uint8_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint16_t[]> src(new (std::align_val_t(64)) uint16_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> dst(new (std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
+  std::shared_ptr<uint8_t[]> ref(new (std::align_val_t(64)) uint8_t[width_samples.max() * width_samples.max()]);
 #endif
 
   // constexpr int32_t LUT_END = static_cast<int32_t>(std::numeric_limits<uint16_t>::max()) + 1;
@@ -86,8 +83,7 @@ auto main() -> int {
 
     // create reference
     for (auto i : std::views::iota(0, LUT_END)) {
-      ref_lut[i] = std::clamp(
-          static_cast<int32_t>(256.0 / (lut_max - lut_min + 1) * (i - lut_min)), 0, 255);
+      ref_lut[i] = std::clamp(static_cast<int32_t>(256.0 / (lut_max - lut_min + 1) * (i - lut_min)), 0, 255);
       std::cout << ref_lut[i] << " ";
     }
     std::cout << std::endl;
@@ -104,8 +100,7 @@ auto main() -> int {
     }
     end        = std::chrono::high_resolution_clock::now();
     time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                             CalcDiff(lut.lut_.get(), ref_lut, LUT_END))
+    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(lut.lut_.get(), ref_lut, LUT_END))
               << std::endl;
 
     // naive lut convert
@@ -117,8 +112,7 @@ auto main() -> int {
     }
     end        = std::chrono::high_resolution_clock::now();
     time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                             CalcDiff(dptr, rptr, data_size))
+    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
               << std::endl;
 
     if (supported_avx2) {
@@ -144,8 +138,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
 
@@ -159,8 +152,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
     if (supported_avx512vbmi) {
@@ -173,8 +165,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
 
@@ -187,8 +178,7 @@ auto main() -> int {
     }
     end        = std::chrono::high_resolution_clock::now();
     time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, "null")
-              << std::endl;
+    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, "null") << std::endl;
 
     // naive calc convert
     std::ranges::fill(std::span(dptr, data_size), 0);
@@ -199,8 +189,7 @@ auto main() -> int {
     }
     end        = std::chrono::high_resolution_clock::now();
     time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                             CalcDiff(dptr, rptr, data_size))
+    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
               << std::endl;
 
     if (supported_avx2) {
@@ -213,8 +202,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
 
       // avx2 calc int weight convert
@@ -226,8 +214,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
 
       // avx2 calc int weight convert
@@ -239,8 +226,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
 
@@ -254,8 +240,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
     if (supported_avx512vbmi) {
@@ -268,8 +253,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
 
       // avx512 calc int weight epu16 convert
@@ -281,8 +265,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
 
       // avx512 calc int weight epi32 convert
@@ -294,8 +277,7 @@ auto main() -> int {
       }
       end        = std::chrono::high_resolution_clock::now();
       time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-      std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                               CalcDiff(dptr, rptr, data_size))
+      std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
                 << std::endl;
     }
 
@@ -320,8 +302,7 @@ auto main() -> int {
     }
     end        = std::chrono::high_resolution_clock::now();
     time_count = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::cout << std::format("time: {}, diff: {}", time_count / loop_count,
-                             CalcDiff(dptr, rptr, data_size))
+    std::cout << std::format("time: {}, diff: {}", time_count / loop_count, CalcDiff(dptr, rptr, data_size))
               << std::endl;
   }
 

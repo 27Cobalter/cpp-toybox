@@ -49,8 +49,7 @@ bool InstructionInfo::IsSupported(InstructionInfo::InstructionSet id) {
 }
 
 void InstructionInfo::Display(std::ostream& os) {
-#define DISPLAY_INSTRUCTION(x) \
-  os << std::format("{:20} : {}", #x, IsSupported(InstructionSet::x)) << std::endl;
+#define DISPLAY_INSTRUCTION(x) os << std::format("{:20} : {}", #x, IsSupported(InstructionSet::x)) << std::endl;
   DISPLAY_INSTRUCTION(AVX2);
   DISPLAY_INSTRUCTION(AVX512F);
   DISPLAY_INSTRUCTION(AVX512DQ);

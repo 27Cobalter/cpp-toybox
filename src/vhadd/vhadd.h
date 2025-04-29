@@ -27,16 +27,15 @@ private:
   float CalcRcp(float v);
 
 public: // for test
-  template <Method m>
-  std::span<uint16_t> CalcV_Impl(uint16_t* src, int32_t size, int32_t offset_x,
-                                 int32_t offset_y, int32_t horizontal, int32_t vertical);
-  template <Method m>
-  std::span<uint16_t> CalcH_Impl(uint16_t* src, int32_t size, int32_t offset_x,
-                                 int32_t offset_y, int32_t horizontal, int32_t vertical);
-  template <Method m>
-  std::array<std::span<uint16_t>, 2> CalcVH_Impl(uint16_t* src, int32_t size, int32_t offset_x,
-                                                 int32_t offset_y, int32_t horizontal,
-                                                 int32_t vertical);
+  template<Method m>
+  std::span<uint16_t> CalcV_Impl(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y, int32_t horizontal,
+                                 int32_t vertical);
+  template<Method m>
+  std::span<uint16_t> CalcH_Impl(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y, int32_t horizontal,
+                                 int32_t vertical);
+  template<Method m>
+  std::array<std::span<uint16_t>, 2> CalcVH_Impl(uint16_t* src, int32_t size, int32_t offset_x, int32_t offset_y,
+                                                 int32_t horizontal, int32_t vertical);
 
 public:
   VHAdd(const int32_t width, const int32_t height);

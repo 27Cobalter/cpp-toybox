@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <cstdint>
+#include <memory>
 
 class LUT {
 private:
@@ -30,9 +30,9 @@ public:
 
 private:
 public: // for test
-  template <Method m>
+  template<Method m>
   void Create_Impl(int32_t lut_min, int32_t lut_max);
-  template <Method m>
+  template<Method m>
   void Convert_Impl(uint16_t* src, uint8_t* dst, int32_t data_size);
 
   void ImplSelector();

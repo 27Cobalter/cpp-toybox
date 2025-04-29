@@ -1,7 +1,7 @@
-#include <iostream>
-#include <span>
 #include <cstdint>
+#include <iostream>
 #include <print>
+#include <span>
 
 #include <libusb-1.0/libusb.h>
 
@@ -27,11 +27,10 @@ auto main() -> int {
       std::println("{:16s} : {:04x}", "idVendor", desc.idVendor);
       std::println("{:16s} : {:04x}", "idProduct", desc.idProduct);
 
-      libusb_get_string_descriptor_ascii(handle, desc.iManufacturer,
-                                         reinterpret_cast<unsigned char*>(text), sizeof(text));
+      libusb_get_string_descriptor_ascii(handle, desc.iManufacturer, reinterpret_cast<unsigned char*>(text),
+                                         sizeof(text));
       std::println("{:16s}: {}", "iManufacturer", text);
-      libusb_get_string_descriptor_ascii(handle, desc.iProduct,
-                                         reinterpret_cast<unsigned char*>(text), sizeof(text));
+      libusb_get_string_descriptor_ascii(handle, desc.iProduct, reinterpret_cast<unsigned char*>(text), sizeof(text));
       std::println("{:16s}: {}", "iProduct", text);
 
       std::println();

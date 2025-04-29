@@ -20,7 +20,7 @@ public:
   };
 
 public:
-  template <Method m>
+  template<Method m>
   void Create_Impl(uint16_t* source, int32_t data_size);
   MyHisto(int32_t range_max);
 };
