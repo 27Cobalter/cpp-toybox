@@ -10,7 +10,7 @@
 
 template<auto EV>
   requires std::is_enum_v<decltype(EV)>
-consteval std::string_view ValueName() {
+consteval std::basic_string_view<char> ValueName() {
   auto location      = std::source_location::current();
   auto function_name = std::string_view(location.function_name());
 #if _MSC_VER
