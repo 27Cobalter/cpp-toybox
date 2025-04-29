@@ -1,4 +1,5 @@
 if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+
 endif()
 add_subdirectory(unpack)
 add_subdirectory(args)
@@ -10,7 +11,4 @@ add_subdirectory(enum_utils)
 add_subdirectory(shared_proj)
 add_subdirectory(magic_enum_call)
 
-# if(NOT WIN32)
-#   add_subdirectory(usb)
-# endif()
-# add_subdirectory(stdio)
+# if(NOT WIN32) add_subdirectory(usb) endif() add_subdirectory(stdio)

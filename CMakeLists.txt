@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.20)
 option(USE_VCPKG "USE_VCPKG" OFF)
 if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   if(DEFINED ENV{VCPKG_ROOT} AND USE_VCPKG)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Path to vcpkg.cmake")
+    set(CMAKE_TOOLCHAIN_FILE
+        "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "Path to vcpkg.cmake")
   else()
     set(CMAKE_TOOLCHAIN_FILE OFF)
   endif()
@@ -12,7 +14,7 @@ endif()
 if(NOT CMAKE_C_COMPILER)
   set(CMAKE_C_COMPILER gcc)
 endif()
-if(NOT CMAKE_CXX_COMPILER )
+if(NOT CMAKE_CXX_COMPILER)
   set(CMAKE_CXX_COMPILER g++)
 endif()
 project(IMPL_TEST LANGUAGES C CXX)
@@ -58,12 +60,18 @@ endif()
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-  )
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip)
+set(gtest_force_shared_crt
+    ON
+    CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
+
+# Coverage
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  include(CMake/Coverage.cmake)
+endif()
 
 add_subdirectory(src)
 # add_subdirectory(test)
