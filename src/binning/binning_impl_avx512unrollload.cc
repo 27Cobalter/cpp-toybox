@@ -6,7 +6,7 @@
 #include <ranges>
 
 #include <immintrin.h>
-#include <opencv4/opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
 template <>
 void Binning<Impl::Avx512UnrollLoad>::Execute(const cv::Mat& src, cv::Mat& dst,

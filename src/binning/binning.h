@@ -4,7 +4,7 @@
 #include <print>
 
 #include <immintrin.h>
-#include <opencv4/opencv2/core/types.hpp>
+#include <opencv2/core/types.hpp>
 
 enum class Impl {
   None,

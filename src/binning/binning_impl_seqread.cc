@@ -6,7 +6,7 @@
 #include <print>
 #include <ranges>
 
-#include <opencv4/opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
 template <>
 void Binning<Impl::SeqRead>::Execute(const cv::Mat& src, cv::Mat& dst, uint32_t binning_x,

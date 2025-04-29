@@ -7,7 +7,7 @@
 
 #include <immintrin.h>
 #include <omp.h>
-#include <opencv4/opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
 template <>
 void Binning<Impl::Avx512SeqBuffer>::Execute(const cv::Mat& src, cv::Mat& dst,
