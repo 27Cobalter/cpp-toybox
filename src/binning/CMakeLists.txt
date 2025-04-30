@@ -7,15 +7,16 @@ target_include_directories(binning_interface INTERFACE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(binning_interface INTERFACE ${OpenCV_LIBS})
 
 add_library(binning "binning.cc" "binning.h" ${BINNING_IMPL})
+target_link_libraries(binning PRIVATE binning_interface)
 target_include_directories(binning PUBLIC .)
-target_include_directories(binning PRIVATE binning_interface)
 
 add_library(binning_avx512 STATIC ${BINNING_IMPL_AVX512})
-target_link_libraries(binning PRIVATE ${BINNING_IMPL_AVX512})
-target_include_directories(binning_avx512 PRIVATE binning_interface)
+target_link_libraries(binning_avx512 PRIVATE binning_interface)
 if(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-  target_compile_options(binning_avx512 PRIVATE -mavx512f)
+  target_compile_options(binning_avx512 PRIVATE -mavx512f -mavx512bw)
 endif()
+
+target_link_libraries(binning PRIVATE binning_avx512)
 
 add_executable(binning_main "main.cc")
 target_link_libraries(binning_main PRIVATE binning binning_interface)
