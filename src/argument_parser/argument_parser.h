@@ -25,9 +25,9 @@ struct ArgumentOption {
   bool hide                                          = false;
   std::optional<std::string_view> value_name         = std::nullopt;
   std::optional<std::string_view> default_value      = std::nullopt;
-  std::optional<std::string_view> requires_all       = std::nullopt;
-  std::optional<std::string_view> conflicts_with_all = std::nullopt;
-  std::optional<std::string_view> value_delimiter    = std::nullopt;
+  /// std::optional<std::string_view> requires_all       = std::nullopt;
+  // std::optional<std::string_view> conflicts_with_all = std::nullopt;
+  // std::optional<std::string_view> value_delimiter    = std::nullopt;
   std::optional<std::string_view> help               = std::nullopt;
 };
 
@@ -49,7 +49,7 @@ class ArgMatches {
 public:
   std::optional<std::string> GetOne(std::string_view id) const;
   std::vector<std::string> GetMany(std::string_view id) const;
-  std::optional<bool> GetFlag(std::string_view id) const;
+  bool GetFlag(std::string_view id) const;
 
   void Set(std::string_view id, std::string_view);
   void Append(std::string_view id, std::string_view);
@@ -87,6 +87,9 @@ private:
   std::tuple<arg_it_t, Result> ParseOptionLong(const arg_it_t& it, const arg_it_t& end, std::string_view content);
   std::tuple<arg_it_t, Result> ParseOptionShort(const arg_it_t& it, const arg_it_t& end, std::string_view content);
   std::tuple<arg_it_t, Result> ParseArgument(const arg_it_t& it, const arg_it_t& end, int32_t& index, std::string_view content);
+
+  bool HasAuto(const ArgumentOption& arg) const;
+  void SetAuto(const ArgumentOption& arg, std::string_view content);
 
 private:
   const std::string_view name_;

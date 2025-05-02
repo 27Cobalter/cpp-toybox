@@ -2,6 +2,7 @@
 
 #include <array>
 #include <format>
+#include <vector>
 
 #include "argument_parser.h"
 #include "enum_utils.h"
@@ -16,14 +17,13 @@ TEST(ArgumentParserTest, Help) {
                       ArgumentOption{.id = "REQUIRED1"},
                   });
 
-  {
-    std::array argv = {"test", "-h"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
-    ASSERT_EQ(result, Result::DisplayHelp);
-  }
-  {
-    std::array argv = {"test", "--help"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  std::vector<std::vector<const char*>> argv = {
+      {"test", "-h"    },
+      {"test", "--help"}
+  };
+
+  for (const auto& a : argv) {
+    auto result = command.TryParse(argv.size(), const_cast<char**>(a.data()));
     ASSERT_EQ(result, Result::DisplayHelp);
   }
 }
@@ -34,14 +34,13 @@ TEST(ArgumentParserTest, Version) {
                       ArgumentOption{.id = "REQUIRED1"},
                   });
 
-  {
-    std::array argv = {"test", "-v"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
-    ASSERT_EQ(result, Result::DisplayVersion);
-  }
-  {
-    std::array argv = {"test", "--version"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  std::vector<std::vector<const char*>> argv = {
+      {"test", "-v"       },
+      {"test", "--version"}
+  };
+
+  for (const auto& a : argv) {
+    auto result = command.TryParse(argv.size(), const_cast<char**>(a.data()));
     ASSERT_EQ(result, Result::DisplayVersion);
   }
 }
@@ -52,14 +51,13 @@ TEST(ArgumentParserTest, VersionNullOpt) {
                       ArgumentOption{.id = "REQUIRED1"},
                   });
 
-  {
-    std::array argv = {"test", "-v"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
-    ASSERT_EQ(result, Result::UnknownArgument);
-  }
-  {
-    std::array argv = {"test", "--version"};
-    auto result     = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  std::vector<std::vector<const char*>> argv = {
+      {"test", "-v"       },
+      {"test", "--version"}
+  };
+
+  for (const auto& a : argv) {
+    auto result = command.TryParse(argv.size(), const_cast<char**>(a.data()));
     ASSERT_EQ(result, Result::UnknownArgument);
   }
 }
@@ -152,8 +150,8 @@ TEST(ArgumentParserTest, Action) {
   ASSERT_EQ(2, values.size());
   ASSERT_STREQ("APPENDSHORT", values[0].c_str());
   ASSERT_STREQ("APPENDLONG", values[1].c_str());
-  ASSERT_TRUE(matches.lock()->GetFlag("settrueshort").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("settruelong").value_or(false));
+  ASSERT_TRUE(matches.lock()->GetFlag("settrueshort"));
+  ASSERT_TRUE(matches.lock()->GetFlag("settruelong"));
 }
 
 TEST(ArgumentParserTest, ActionSetAppendValueType) {
@@ -228,11 +226,113 @@ TEST(ArgumentParserTest, ActionSetTrueMultiple) {
   auto matches = command.Matches();
   ASSERT_FALSE(matches.expired());
 
-  ASSERT_TRUE(matches.lock()->GetFlag("b").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("a").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("s").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("e").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("i").value_or(false));
-  ASSERT_TRUE(matches.lock()->GetFlag("t").value_or(false));
+  ASSERT_TRUE(matches.lock()->GetFlag("b"));
+  ASSERT_TRUE(matches.lock()->GetFlag("a"));
+  ASSERT_TRUE(matches.lock()->GetFlag("s"));
+  ASSERT_TRUE(matches.lock()->GetFlag("e"));
+  ASSERT_TRUE(matches.lock()->GetFlag("i"));
+  ASSERT_TRUE(matches.lock()->GetFlag("t"));
   ASSERT_STREQ("BASE", matches.lock()->GetOne("v").value_or("").c_str());
+}
+
+TEST(ArgumentParserTest, Required) {
+  std::array argv = {"test"};
+
+  std::vector<ArgumentOption> options = {
+      ArgumentOption{
+                     .id       = "a",
+                     .index    = 0,
+                     .action   = Action::Set,
+                     .required = true,
+                     },
+      ArgumentOption{
+                     .id       = "a",
+                     .index    = 0,
+                     .action   = Action::Append,
+                     .required = true,
+                     },
+      ArgumentOption{
+                     .id       = "a",
+                     .index    = 0,
+                     .action   = Action::SetTrue,
+                     .required = true,
+                     },
+      ArgumentOption{
+                     .id         = "a",
+                     .short_name = 'a',
+                     .action     = Action::Set,
+                     .required   = true,
+                     },
+      ArgumentOption{
+                     .id         = "a",
+                     .short_name = 'a',
+                     .action     = Action::Append,
+                     .required   = true,
+                     },
+      ArgumentOption{
+                     .id         = "a",
+                     .short_name = 'a',
+                     .action     = Action::SetTrue,
+                     .required   = true,
+                     }
+  };
+
+  for (const auto& option : options) {
+    Command command("test", "Test Program", "0.0.1", std::nullopt, {option});
+    auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+    ASSERT_EQ(result, Result::MissingRequiredArgument);
+  }
+}
+
+TEST(ArgumentParserTest, DefaultValue) {
+  std::array argv = {"test"};
+
+  Command command("test", "Test Program", "0.0.1", std::nullopt,
+                  {
+                      ArgumentOption{.id = "IS", .index = 1,        .action = Action::Set,    .default_value = "DIS"},
+                      ArgumentOption{.id = "IA", .index = 2,        .action = Action::Append, .default_value = "DIA"},
+                      ArgumentOption{.id = "OS", .short_name = 's', .action = Action::Set,    .default_value = "DOS"},
+                      ArgumentOption{.id = "OA", .short_name = 'a', .action = Action::Append, .default_value = "DOA"},
+  });
+
+  auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  ASSERT_EQ(result, Result::Success);
+
+  auto matches = command.Matches();
+  ASSERT_FALSE(matches.expired());
+
+  ASSERT_STREQ("DIS", matches.lock()->GetOne("IS").value_or("").c_str());
+  ASSERT_EQ(1, matches.lock()->GetMany("IA").size());
+  ASSERT_STREQ("DIA", matches.lock()->GetMany("IA")[0].c_str());
+  ASSERT_STREQ("DOS", matches.lock()->GetOne("OS").value_or("").c_str());
+  ASSERT_EQ(1, matches.lock()->GetMany("OA").size());
+  ASSERT_STREQ("DOA", matches.lock()->GetMany("OA")[0].c_str());
+}
+
+TEST(ArgumentParserTest, DefaultValueRequired) {
+  std::array argv = {"test"};
+
+  Command command(
+      "test", "Test Program", "0.0.1", std::nullopt,
+      {
+          ArgumentOption{.id = "RIS", .index = 1,        .action = Action::Set,    .required = true, .default_value = "DRIS"},
+          ArgumentOption{.id = "RIA", .index = 2,        .action = Action::Append, .required = true, .default_value = "DRIA"},
+          ArgumentOption{
+                         .id = "ROS", .short_name = 't', .action = Action::Set,    .required = true, .default_value = "DROS"},
+          ArgumentOption{
+                         .id = "ROA", .short_name = 'b', .action = Action::Append, .required = true, .default_value = "DROA"},
+  });
+
+  auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  ASSERT_EQ(result, Result::Success);
+
+  auto matches = command.Matches();
+  ASSERT_FALSE(matches.expired());
+
+  ASSERT_STREQ("DRIS", matches.lock()->GetOne("RIS").value_or("").c_str());
+  ASSERT_EQ(1, matches.lock()->GetMany("RIA").size());
+  ASSERT_STREQ("DRIA", matches.lock()->GetMany("RIA")[0].c_str());
+  ASSERT_STREQ("DROS", matches.lock()->GetOne("ROS").value_or("").c_str());
+  ASSERT_EQ(1, matches.lock()->GetMany("ROA").size());
+  ASSERT_STREQ("DROA", matches.lock()->GetMany("ROA")[0].c_str());
 }

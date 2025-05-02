@@ -28,10 +28,10 @@ std::vector<std::string> ArgMatches::GetMany(std::string_view id) const {
     return pos->second;
   }
 }
-std::optional<bool> ArgMatches::GetFlag(std::string_view id) const {
+bool ArgMatches::GetFlag(std::string_view id) const {
   auto pos = set_true_value_.find(id);
   if (pos == set_true_value_.end()) {
-    return std::nullopt;
+    return false;
   } else {
     return pos->second;
   }
@@ -110,6 +110,27 @@ Result Command::TryParse(int32_t argc, char** argv) {
       std::tie(it, result) = ParseArgument(it, args.cend(), index, arg);
     }
   }
+
+  for (const auto& arg : arg_index_) {
+    assert(arg.action != Action::SetTrue || arg.default_value.has_value() == false);
+    if (HasAuto(arg) == false) {
+      if (arg.default_value.has_value()) {
+        SetAuto(arg, arg.default_value.value());
+      } else if (arg.required == true) {
+        return Result::MissingRequiredArgument;
+      }
+    }
+  }
+  for (const auto& arg : arg_options_) {
+    assert(arg.action != Action::SetTrue || arg.default_value.has_value() == false);
+    if (HasAuto(arg) == false) {
+      if (arg.default_value.has_value()) {
+        SetAuto(arg, arg.default_value.value());
+      } else if (arg.required == true) {
+        return Result::MissingRequiredArgument;
+      }
+    }
+  }
   return result;
 }
 
@@ -135,16 +156,11 @@ std::tuple<arg_it_t, Result> Command::ParseOptionLong(const arg_it_t& it, const 
     if (arg.long_name.value() == content) {
       switch (arg.action) {
       case (Action::Set):
-        if (it + 1 == end) {
-          return {end, Result::TooFewValues};
-        }
-        arg_result_->Set(arg.id, *(it + 1));
-        return {it + 2, Result::Success};
       case (Action::Append):
         if (it + 1 == end) {
           return {end, Result::TooFewValues};
         }
-        arg_result_->Append(arg.id, *(it + 1));
+        SetAuto(arg, *(it + 1));
         return {it + 2, Result::Success};
       case (Action::SetTrue):
         arg_result_->SetTrue(arg.id);
@@ -155,14 +171,10 @@ std::tuple<arg_it_t, Result> Command::ParseOptionLong(const arg_it_t& it, const 
       }
     } else if (content.starts_with(std::format("{}=", arg.long_name.value()))) {
       switch (arg.action) {
-      case (Action::Set): {
-        auto pos = content.find('=');
-        arg_result_->Set(arg.id, content.substr(pos + 1));
-        return {it + 1, Result::Success};
-      }
+      case (Action::Set):
       case (Action::Append): {
         auto pos = content.find('=');
-        arg_result_->Append(arg.id, content.substr(pos + 1));
+        SetAuto(arg, content.substr(pos + 1));
         return {it + 1, Result::Success};
       }
       case (Action::SetTrue):
@@ -198,24 +210,7 @@ std::tuple<arg_it_t, Result> Command::ParseOptionShort(const arg_it_t& it, const
       }
       if (arg.short_name.value() == *c_it) {
         switch (arg.action) {
-        case (Action::Set): {
-          if (c_it + 1 != content.end()) {
-            std::string_view value;
-            if (*(c_it + 1) == '=') {
-              value = std::string_view{c_it + 2, content.end()};
-            } else {
-              value = std::string_view{c_it + 1, content.end()};
-            }
-            arg_result_->Set(arg.id, value);
-            return {it + 1, Result::Success};
-          } else {
-            if (it + 1 == end) {
-              return {end, Result::TooFewValues};
-            }
-            arg_result_->Set(arg.id, *(it + 1));
-            return {it + 2, Result::Success};
-          }
-        }
+        case (Action::Set):
         case (Action::Append): {
           if (c_it + 1 != content.end()) {
             std::string_view value;
@@ -224,13 +219,13 @@ std::tuple<arg_it_t, Result> Command::ParseOptionShort(const arg_it_t& it, const
             } else {
               value = std::string_view{c_it + 1, content.end()};
             }
-            arg_result_->Append(arg.id, value);
+            SetAuto(arg, value);
             return {it + 1, Result::Success};
           } else {
             if (it + 1 == end) {
               return {end, Result::TooFewValues};
             }
-            arg_result_->Append(arg.id, *(it + 1));
+            SetAuto(arg, *(it + 1));
             return {it + 2, Result::Success};
           }
         }
@@ -284,6 +279,30 @@ std::weak_ptr<const ArgMatches> Command::SubCommandMatches(std::string_view name
   // }
   // return nullptr;
   return {};
+}
+
+bool Command::HasAuto(const ArgumentOption& arg) const {
+  switch (arg.action) {
+  case (Action::Set):
+    return arg_result_->HasOne(arg.id);
+  case (Action::Append):
+    return arg_result_->HasMany(arg.id);
+  case (Action::SetTrue):
+    return arg_result_->HasFlag(arg.id);
+  default:
+    assert(false);
+    return false;
+  }
+}
+void Command::SetAuto(const ArgumentOption& arg, std::string_view content) {
+  switch (arg.action) {
+  case (Action::Set):
+    arg_result_->Set(arg.id, content);
+  case (Action::Append):
+    arg_result_->Append(arg.id, content);
+  case (Action::SetTrue):
+    arg_result_->SetTrue(arg.id);
+  }
 }
 
 std::string Command::Help() const {
