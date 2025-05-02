@@ -20,7 +20,7 @@ struct ArgumentOption {
   std::optional<char> short_name                     = std::nullopt;
   std::optional<std::string_view> long_name          = std::nullopt;
   std::optional<int32_t> index                       = std::nullopt;
-  Action action                                      = Action::SetTrue;
+  Action action                                      = Action::Set;
   bool required                                      = false;
   bool hide                                          = false;
   std::optional<std::string_view> value_name         = std::nullopt;

@@ -111,6 +111,10 @@ Result Command::TryParse(int32_t argc, char** argv) {
     }
   }
 
+  if (result == Result::DisplayHelp || result == Result::DisplayVersion) {
+    return result;
+  }
+
   for (const auto& arg : arg_index_) {
     assert(arg.action != Action::SetTrue || arg.default_value.has_value() == false);
     if (HasAuto(arg) == false) {

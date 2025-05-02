@@ -12,10 +12,27 @@ void PrintTo(const Result& result, ::std::ostream* os) {
 }
 
 TEST(ArgumentParserTest, Help) {
-  Command command("test", "Test Program", "0.0.1", std::nullopt,
-                  {
-                      ArgumentOption{.id = "REQUIRED1"},
-                  });
+  Command command(
+      "test", "Test Program", "0.0.1", std::nullopt,
+      {
+          ArgumentOption{.id         = "Required",
+                         .index      = 1,
+                         .action     = Action::Set,
+                         .required   = true,
+                         .value_name = "REQUIRED",
+                         .help       = "Index Arg1"},
+          ArgumentOption{.id            = "Optional",
+                         .index         = 2,
+                         .action        = Action::Set,
+                         .value_name    = "OPTIONAL",
+                         .default_value = "Def",
+                         .help          = "Index Arg2"},
+          ArgumentOption{.id = "Short", .short_name = 's'},
+          ArgumentOption{.id = "Long", .long_name = "long", .action = Action::Set},
+          ArgumentOption{
+                         .id = "ShortLong", .short_name = 'l', .long_name = "long", .action = Action::Set, .default_value = "Def"},
+          ArgumentOption{.id = "Hide", .short_name = 'h', .hide = true}
+  });
 
   std::vector<std::vector<const char*>> argv = {
       {"test", "-h"    },
@@ -26,6 +43,7 @@ TEST(ArgumentParserTest, Help) {
     auto result = command.TryParse(argv.size(), const_cast<char**>(a.data()));
     ASSERT_EQ(result, Result::DisplayHelp);
   }
+  std::cout << command.Help() << std::endl;
 }
 
 TEST(ArgumentParserTest, Version) {
@@ -43,6 +61,7 @@ TEST(ArgumentParserTest, Version) {
     auto result = command.TryParse(argv.size(), const_cast<char**>(a.data()));
     ASSERT_EQ(result, Result::DisplayVersion);
   }
+  std::cout << command.Version() << std::endl;
 }
 
 TEST(ArgumentParserTest, VersionNullOpt) {
@@ -152,6 +171,10 @@ TEST(ArgumentParserTest, Action) {
   ASSERT_STREQ("APPENDLONG", values[1].c_str());
   ASSERT_TRUE(matches.lock()->GetFlag("settrueshort"));
   ASSERT_TRUE(matches.lock()->GetFlag("settruelong"));
+
+  ASSERT_FALSE(matches.lock()->GetOne("InvalidSet").has_value());
+  ASSERT_EQ(0, matches.lock()->GetMany("InvalidAppend").size());
+  ASSERT_FALSE(matches.lock()->GetFlag("InvalidFlag"));
 }
 
 TEST(ArgumentParserTest, ActionSetAppendValueType) {
@@ -211,13 +234,13 @@ TEST(ArgumentParserTest, ActionSetTrueMultiple) {
 
   Command command("test", "Test Program", "0.0.1", std::nullopt,
                   {
-                      ArgumentOption{.id = "b", .short_name = 'b'},
-                      ArgumentOption{.id = "a", .short_name = 'a'},
-                      ArgumentOption{.id = "s", .short_name = 's'},
-                      ArgumentOption{.id = "e", .short_name = 'e'},
-                      ArgumentOption{.id = "i", .short_name = 'i'},
-                      ArgumentOption{.id = "t", .short_name = 't'},
-                      ArgumentOption{.id = "v", .short_name = 'v', .action = Action::Set},
+                      ArgumentOption{.id = "b", .short_name = 'b', .action = Action::SetTrue},
+                      ArgumentOption{.id = "a", .short_name = 'a', .action = Action::SetTrue},
+                      ArgumentOption{.id = "s", .short_name = 's', .action = Action::SetTrue},
+                      ArgumentOption{.id = "e", .short_name = 'e', .action = Action::SetTrue},
+                      ArgumentOption{.id = "i", .short_name = 'i', .action = Action::SetTrue},
+                      ArgumentOption{.id = "t", .short_name = 't', .action = Action::SetTrue},
+                      ArgumentOption{.id = "v", .short_name = 'v', .action = Action::Set    },
   });
 
   auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
