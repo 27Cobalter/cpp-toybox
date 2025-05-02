@@ -4,8 +4,12 @@
 #include <iostream>
 
 auto main(int32_t argc, char** argv) -> int32_t {
-  ArgumentParser parser(
-      "test", "0.0.1", "Test program", std::nullopt,
+  for (int32_t i = 0; i < argc; ++i) {
+    std::cout << "argv[" << i << "] = " << argv[i] << std::endl;
+  }
+  return 0;
+  Command command(
+      "test", "Test program", "0.0.1", std::nullopt,
       {
           ArgumentOption{.id = "all", .short_name = 'a', .long_name = "all"},
           ArgumentOption{.id = "print", .short_name = 'p', .long_name = "print"},
@@ -15,25 +19,24 @@ auto main(int32_t argc, char** argv) -> int32_t {
           ArgumentOption{.id = "mlong", .long_name = "mlong", .action = Action::Set, .help = "Set argument"},
           ArgumentOption{.id = "nshort", .short_name = 'n', .action = Action::Append, .help = "Append argument"},
           ArgumentOption{.id            = "pos_req",
-                         .required      = true,
                          .index         = 1,
+                         .required      = true,
                          .default_value = "default",
                          .help          = "Required positional argument"},
           ArgumentOption{.id = "pos_opt", .index = 2, .help = "Optional positional argument"},
           ArgumentOption{.id = "looooooooooooooong", .index = 3, .help = "long argument"},
   });
 
-  auto result = parser.Parse(argc, argv);
+  auto result = command.TryParse(argc, argv);
   switch (result) {
   case Result::Success:
     break;
-  case Result::Version:
-    std::cout << parser.Version() << std::endl;
+  case Result::DisplayVersion:
+    std::cout << command.Version() << std::endl;
     return 0;
-  case Result::Help:
-    [[fallthrough]];
+  case Result::DisplayHelp:
   default:
-    std::cout << parser.Help() << std::endl;
+    std::cout << command.Help() << std::endl;
     return 0;
   }
 
