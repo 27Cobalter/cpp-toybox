@@ -126,8 +126,8 @@ TEST(ArgumentParserTest, IndexAppend) {
 
 TEST(ArgumentParserTest, Action) {
   std::array argv = {
-      "test",      "-s=SETSHORT", "--setlong=SETLONG", "-a=APPEND1",       "-a",       "APPEND2",
-      "-aAPPEND3", "-t",          "--settruelong",     "--append=APPEND4", "--append", "APPEND5",
+      "test",        "-s", "SETSHORT",      "--setlong", "SETLONG",    "-a",
+      "APPENDSHORT", "-t", "--settruelong", "--append",  "APPENDLONG",
   };
 
   Command command(
@@ -149,14 +149,63 @@ TEST(ArgumentParserTest, Action) {
   ASSERT_STREQ("SETSHORT", matches.lock()->GetOne("setshort").value_or("").c_str());
   ASSERT_STREQ("SETLONG", matches.lock()->GetOne("setlong").value_or("").c_str());
   auto values = matches.lock()->GetMany("append");
-  ASSERT_EQ(5, values.size());
-  ASSERT_STREQ("APPEND1", values[0].c_str());
-  ASSERT_STREQ("APPEND2", values[1].c_str());
-  ASSERT_STREQ("APPEND3", values[2].c_str());
-  ASSERT_STREQ("APPEND4", values[3].c_str());
-  ASSERT_STREQ("APPEND5", values[4].c_str());
+  ASSERT_EQ(2, values.size());
+  ASSERT_STREQ("APPENDSHORT", values[0].c_str());
+  ASSERT_STREQ("APPENDLONG", values[1].c_str());
   ASSERT_TRUE(matches.lock()->GetFlag("settrueshort").value_or(false));
   ASSERT_TRUE(matches.lock()->GetFlag("settruelong").value_or(false));
+}
+
+TEST(ArgumentParserTest, ActionSetAppendValueType) {
+  std::array argv = {
+      "test",
+      "-a",
+      "SETSHORTSPACE",
+      "-b=SETSHORTEQUAL",
+      "-cSETSHORTCONNECT",
+      "-d",
+      "APPENDSHORTSPACE",
+      "-d=APPENDSHORTEQUAL",
+      "-dAPPENDSHORTCONNECT",
+      "--setlongspace",
+      "SETLONGSPACE",
+      "--setlongequal=SETLONGEQUAL",
+      "--appendlong",
+      "APPENDLONGSPACE",
+      "--appendlong=APPENDLONGEQUAL",
+  };
+
+  Command command("test", "Test Program", "0.0.1", std::nullopt,
+                  {
+                      ArgumentOption{.id = "setshortspace",   .short_name = 'a',           .action = Action::Set   },
+                      ArgumentOption{.id = "setshortequal",   .short_name = 'b',           .action = Action::Set   },
+                      ArgumentOption{.id = "setshortconnect", .short_name = 'c',           .action = Action::Set   },
+                      ArgumentOption{.id = "appendshort",     .short_name = 'd',           .action = Action::Append},
+                      ArgumentOption{.id = "setlongspace",    .long_name = "setlongspace", .action = Action::Set   },
+                      ArgumentOption{.id = "setlongequal",    .long_name = "setlongequal", .action = Action::Set   },
+                      ArgumentOption{.id = "appendlong",      .long_name = "appendlong",   .action = Action::Append},
+  });
+
+  auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  ASSERT_EQ(result, Result::Success);
+
+  auto matches = command.Matches();
+  ASSERT_FALSE(matches.expired());
+
+  ASSERT_STREQ("SETSHORTSPACE", matches.lock()->GetOne("setshortspace").value_or("").c_str());
+  ASSERT_STREQ("SETSHORTEQUAL", matches.lock()->GetOne("setshortequal").value_or("").c_str());
+  ASSERT_STREQ("SETSHORTCONNECT", matches.lock()->GetOne("setshortconnect").value_or("").c_str());
+  auto values_short = matches.lock()->GetMany("appendshort");
+  ASSERT_EQ(3, values_short.size());
+  ASSERT_STREQ("APPENDSHORTSPACE", values_short[0].c_str());
+  ASSERT_STREQ("APPENDSHORTEQUAL", values_short[1].c_str());
+  ASSERT_STREQ("APPENDSHORTCONNECT", values_short[2].c_str());
+  ASSERT_STREQ("SETLONGSPACE", matches.lock()->GetOne("setlongspace").value_or("").c_str());
+  ASSERT_STREQ("SETLONGEQUAL", matches.lock()->GetOne("setlongequal").value_or("").c_str());
+  auto values_long = matches.lock()->GetMany("appendlong");
+  ASSERT_EQ(2, values_long.size());
+  ASSERT_STREQ("APPENDLONGSPACE", values_long[0].c_str());
+  ASSERT_STREQ("APPENDLONGEQUAL", values_long[1].c_str());
 }
 
 TEST(ArgumentParserTest, ActionSetTrueMultiple) {
