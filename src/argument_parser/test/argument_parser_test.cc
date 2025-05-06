@@ -359,3 +359,69 @@ TEST(ArgumentParserTest, DefaultValueRequired) {
   ASSERT_EQ(1, matches.lock()->GetMany("ROA").size());
   ASSERT_STREQ("DROA", matches.lock()->GetMany("ROA")[0].c_str());
 }
+
+TEST(ArgumentParserTest, SubCommand) {
+  std::array argv = {"test",          "REQUIRED1", "SubCommand",    "-v",    "SUB_VALUESET",
+                     "SUB_REQUIRED1", "-f",        "SUB_OPTIONAL1", "Nest2", "DEEP_REQUIRED"};
+
+  Command command(
+      "test", "Test Program", "0.0.1", std::nullopt,
+      {
+          ArgumentOption{.id = "REQUIRED1", .index = 1, .action = Action::Set, .required = true}
+  },
+      {Command("SubCommand", "sub command test",
+               {ArgumentOption{.id = "required1", .index = 1, .action = Action::Set, .required = true},
+                ArgumentOption{.id = "optional1", .index = 2, .action = Action::Set},
+                ArgumentOption{.id = "value", .short_name = 'v', .action = Action::Set},
+                ArgumentOption{.id = "flag", .short_name = 'f', .action = Action::SetTrue}},
+               {Command("Nest2", "sub command nest test",
+                        {ArgumentOption{.id = "required2", .index = 1, .action = Action::Set, .required = true},
+                         ArgumentOption{.id = "optional2", .index = 2, .action = Action::Set},
+                         ArgumentOption{.id = "value", .short_name = 'v', .action = Action::Set},
+                         ArgumentOption{.id = "flag", .short_name = 'f', .action = Action::SetTrue}})})});
+
+  auto result = command.TryParse(argv.size(), const_cast<char**>(argv.data()));
+  ASSERT_EQ(result, Result::Success);
+
+  auto matches = command.Matches();
+  ASSERT_FALSE(matches.expired());
+
+  ASSERT_STREQ("REQUIRED1", matches.lock()->GetOne("REQUIRED1").value_or("").c_str());
+
+  ASSERT_STREQ("SubCommand", std::string(matches.lock()->SubCommandName().value_or("")).c_str());
+  auto submatches = matches.lock()->SubCommandMatches("SubCommand");
+  ASSERT_FALSE(submatches.expired());
+  ASSERT_STREQ("SUB_REQUIRED1", submatches.lock()->GetOne("required1").value_or("").c_str());
+  ASSERT_STREQ("SUB_OPTIONAL1", submatches.lock()->GetOne("optional1").value_or("").c_str());
+  ASSERT_STREQ("SUB_VALUESET", submatches.lock()->GetOne("value").value_or("").c_str());
+  ASSERT_TRUE(submatches.lock()->GetFlag("flag"));
+
+  ASSERT_STREQ("Nest2", std::string(submatches.lock()->SubCommandName().value_or("")).c_str());
+  auto nest2 = submatches.lock()->SubCommandMatches("Nest2");
+  ASSERT_FALSE(nest2.expired());
+  ASSERT_STREQ("DEEP_REQUIRED", nest2.lock()->GetOne("required2").value_or("").c_str());
+}
+
+TEST(ArgumentParserTest, SubCommandHelp) {
+  std::vector<std::vector<const char*>> argv = {
+      {"test", "a1", "-h",   "Sub1", "a2",   "Sub2", "a3"},
+      {"test", "a1", "Sub1", "-h",   "a2",   "Sub2", "a3"},
+      {"test", "a1", "Sub1", "a2",   "Sub2", "a3",   "-h"},
+  };
+
+  Command command(
+      "test", "Test Program", "0.0.1", std::nullopt,
+      {
+          ArgumentOption{.id = "nest0", .index = 1, .help = "Nest 0 Option"}
+  },
+      {Command("Sub1", "sub command test", {ArgumentOption{.id = "nest1", .help = "Nest 1 Option"}},
+               {Command("Sub2", "sub2", {ArgumentOption{.id = "nest2", .help = "Nest 2 Option"}})})});
+
+  for (const auto& arg : argv) {
+    auto result = command.TryParse(arg.size(), const_cast<char**>(arg.data()));
+    ASSERT_EQ(result, Result::DisplayHelp);
+
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << command.Help() << std::endl;
+  }
+}

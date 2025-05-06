@@ -62,8 +62,9 @@ bool ArgMatches::HasFlag(std::string_view id) const {
 
 Command::Command(std::string_view name, std::string_view about, std::optional<std::string_view> version,
                  std::optional<std::string_view> author, const std::vector<ArgumentOption>& arguments,
-                 const std::vector<Command>& sub_commands, bool sub_command_required)
-    : name_(name), version_(version), about_(about), author_(author), arg_result_(nullptr) {
+                 const std::vector<Command>& subcommands, bool subcommand_required)
+    : name_(name), version_(version), about_(about), author_(author), arg_result_(nullptr),
+      subcommand_required_(subcommand_required) {
   for (const auto& arg : arguments) {
     if (arg.short_name.has_value() || arg.long_name.has_value()) {
       arg_options_.push_back(arg);
@@ -90,7 +91,15 @@ Command::Command(std::string_view name, std::string_view about, std::optional<st
     required &= arg_index_[i].required;
     hide |= arg_index_[i].hide;
   }
+
+  for (const auto& subcommand : subcommands) {
+    subcommands_.emplace(subcommand.name_, subcommand);
+  }
 }
+
+Command::Command(std::string_view name, std::string_view about, const std::vector<ArgumentOption>& arguments,
+                 const std::vector<Command>& subcommands, bool subcommand_required)
+    : Command(name, about, std::nullopt, std::nullopt, arguments, subcommands, subcommand_required) {};
 
 Result Command::TryParse(int32_t argc, char** argv) {
   arg_result_ = std::make_shared<ArgMatches>();
@@ -99,15 +108,27 @@ Result Command::TryParse(int32_t argc, char** argv) {
 
   Result result = Result::Success;
   int32_t index = 0;
-  for (auto it = args.cbegin() + 1; it != args.cend();) {
+  for (auto it = args.begin() + 1; it != args.end();) {
     std::string_view arg{*it};
 
     if (arg.length() >= 2 && arg.starts_with("--")) {
-      std::tie(it, result) = ParseOptionLong(it, args.cend(), arg.substr(2));
+      std::tie(it, result) = ParseOptionLong(it, args.end(), arg.substr(2));
     } else if (arg.starts_with("-")) {
-      std::tie(it, result) = ParseOptionShort(it, args.cend(), arg.substr(1));
+      std::tie(it, result) = ParseOptionShort(it, args.end(), arg.substr(1));
     } else {
-      std::tie(it, result) = ParseArgument(it, args.cend(), index, arg);
+      if (index >= arg_index_.size()) {
+        for (auto& [name, subcommand] : subcommands_) {
+          if (name == arg) {
+            result = subcommand.TryParse(std::distance(it, args.end()), &(*it));
+            arg_result_->SetSubCommand(name, subcommand.arg_result_);
+            return result;
+          }
+        }
+        it     = args.end();
+        result = Result::TooManyValues;
+      } else {
+        std::tie(it, result) = ParseArgument(it, args.end(), index, arg);
+      }
     }
   }
 
@@ -135,10 +156,13 @@ Result Command::TryParse(int32_t argc, char** argv) {
       }
     }
   }
+  if (subcommand_required_ == true && arg_result_->SubCommandName().has_value() == false) {
+    return Result::MissingSubCommand;
+  }
   return result;
 }
 
-using arg_it_t = std::span<char*>::const_iterator;
+using arg_it_t = std::span<char*>::iterator;
 // Support --arg=value and --arg value
 std::tuple<arg_it_t, Result> Command::ParseOptionLong(const arg_it_t& it, const arg_it_t& end,
                                                       std::string_view content) {
@@ -236,6 +260,9 @@ std::tuple<arg_it_t, Result> Command::ParseOptionShort(const arg_it_t& it, const
         case (Action::SetTrue):
           arg_result_->SetTrue(arg.id);
           break;
+        default:
+          assert(false);
+          break;
         }
       }
       found = true;
@@ -249,9 +276,6 @@ std::tuple<arg_it_t, Result> Command::ParseOptionShort(const arg_it_t& it, const
 
 std::tuple<arg_it_t, Result> Command::ParseArgument(const arg_it_t& it, const arg_it_t& end, int32_t& index,
                                                     std::string_view content) {
-  if (index >= arg_index_.size()) {
-    return {end, Result::TooManyValues};
-  }
   auto& arg = arg_index_[index];
   switch (arg.action) {
   case Action::Set:
@@ -276,40 +300,39 @@ std::weak_ptr<const ArgMatches> Command::Matches() const {
   return arg_result_;
 }
 
-std::weak_ptr<const ArgMatches> Command::SubCommandMatches(std::string_view name) const {
-  // auto it = std::ranges::find_if(sub_commands_, [&name](const Command& cmd) { return cmd.name_ == name; });
-  // if (it != sub_commands_.end()) {
-  //   return it->Matches();
-  // }
-  // return nullptr;
-  return {};
-}
-
-bool Command::HasAuto(const ArgumentOption& arg) const {
-  switch (arg.action) {
-  case (Action::Set):
-    return arg_result_->HasOne(arg.id);
-  case (Action::Append):
-    return arg_result_->HasMany(arg.id);
-  case (Action::SetTrue):
-    return arg_result_->HasFlag(arg.id);
-  default:
-    assert(false);
-    return false;
-  }
-}
-void Command::SetAuto(const ArgumentOption& arg, std::string_view content) {
-  switch (arg.action) {
-  case (Action::Set):
-    arg_result_->Set(arg.id, content);
-  case (Action::Append):
-    arg_result_->Append(arg.id, content);
-  case (Action::SetTrue):
-    arg_result_->SetTrue(arg.id);
+std::optional<std::pair<std::string_view, std::weak_ptr<const ArgMatches>>> ArgMatches::SubCommand() const {
+  if (sub_matches_.has_value() == true) {
+    return sub_matches_.value();
+  } else {
+    return std::nullopt;
   }
 }
 
-std::string Command::Help() const {
+void ArgMatches::SetSubCommand(std::string_view name, std::shared_ptr<ArgMatches> matches) {
+  sub_matches_ = {name, matches};
+}
+
+std::optional<std::string_view> ArgMatches::SubCommandName() const {
+  if (sub_matches_.has_value() == true) {
+    return sub_matches_.value().first;
+  } else {
+    return std::nullopt;
+  }
+}
+
+std::weak_ptr<const ArgMatches> ArgMatches::SubCommandMatches(std::string_view name) const {
+  if (sub_matches_.has_value() == true) {
+    return sub_matches_.value().second;
+  } else {
+    return {};
+  }
+}
+
+std::string Command::Help_Impl(std::string_view parent_text) const {
+  const auto sub_name = arg_result_->SubCommandName();
+  if (sub_name.has_value() == true) {
+    return subcommands_.at(sub_name.value()).Help_Impl(std::format("{}{} ", parent_text, name_));
+  }
   std::stringstream ss;
   if (author_.has_value()) {
     ss << std::format("Author: {}", author_.value()) << std::endl;
@@ -317,17 +340,31 @@ std::string Command::Help() const {
   ss << about_ << std::endl;
   ss << std::endl;
 
-  ss << std::format("Usage: {}{}", name_, arg_options_.empty() ? "" : " [OPTIONS]");
+  ss << std::format("Usage: {}{}{}", parent_text, name_, arg_options_.empty() ? "" : " [OPTIONS]");
   for (const auto& index : arg_index_) {
     if (index.hide) continue;
     ss << std::format(" {}", WrapValue(index, index.required));
   }
-  ss << std::endl << std::endl;
+  if (subcommands_.empty() == false) {
+    ss << std::format(" {}", WrapBracket("COMMAND", subcommand_required_));
+  }
+  ss << std::endl;
 
   std::string indent;
   indent = std::string(2, ' ');
 
+  if (subcommands_.empty() == false) {
+    ss << std::endl;
+    ss << "Commands:" << std::endl;
+    std::stringstream ss_content;
+    for (const auto& command : subcommands_) {
+      ss_content << std::format("{}{}", indent, command.first) << std::endl;
+    }
+    ss << AddAlignAbout(ss_content.str());
+  }
+
   if (arg_index_.empty() == false) {
+    ss << std::endl;
     ss << "Arguments:" << std::endl;
     std::stringstream ss_content;
     for (const auto& index : arg_index_) {
@@ -373,6 +410,63 @@ std::string Command::Help() const {
     }
 
     ss << AddAlignHelp(ss_content.str(), arg_options_);
+  }
+
+  return ss.str();
+}
+
+bool Command::HasAuto(const ArgumentOption& arg) const {
+  switch (arg.action) {
+  case (Action::Set):
+    return arg_result_->HasOne(arg.id);
+  case (Action::Append):
+    return arg_result_->HasMany(arg.id);
+  case (Action::SetTrue):
+    return arg_result_->HasFlag(arg.id);
+  default:
+    assert(false);
+    return false;
+  }
+}
+void Command::SetAuto(const ArgumentOption& arg, std::string_view content) {
+  switch (arg.action) {
+  case (Action::Set):
+    arg_result_->Set(arg.id, content);
+    break;
+  case (Action::Append):
+    arg_result_->Append(arg.id, content);
+    break;
+  case (Action::SetTrue):
+    arg_result_->SetTrue(arg.id);
+    break;
+  default:
+    assert(false);
+  }
+}
+
+std::string Command::Help() const {
+  return Help_Impl("");
+}
+
+std::string Command::AddAlignAbout(const std::string& content) const {
+  std::stringstream separator;
+  separator << std::endl;
+
+  std::stringstream ss;
+
+  size_t max_length = 0;
+  for (const auto& line : std::views::split(content, separator.str())) {
+    max_length = std::max(line.size(), max_length);
+  }
+
+  auto command_it = subcommands_.begin();
+  for (const auto& line : std::views::split(content, separator.str()) | std::views::take(subcommands_.size())) {
+    ss << std::format("{:{}}  ", std::string{line.begin(), line.end()}, max_length);
+    if (command_it->second.about_.size() != 0) {
+      ss << std::format("{} ", command_it->second.about_);
+    }
+    ss << std::endl;
+    command_it++;
   }
 
   return ss.str();
