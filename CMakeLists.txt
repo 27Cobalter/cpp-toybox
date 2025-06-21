@@ -71,6 +71,7 @@ enable_testing()
 # Coverage
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   include(CMake/Coverage.cmake)
+  include(CMake/MemCheck.cmake)
 endif()
 
 add_subdirectory(src)
