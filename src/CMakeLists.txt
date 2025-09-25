@@ -3,6 +3,7 @@ if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
 endif()
 
 add_subdirectory(args)
+add_subdirectory(argstorage)
 add_subdirectory(argument_parser)
 # add_subdirectory(binning)
 add_subdirectory(branch_miss)
