@@ -35,10 +35,10 @@ void Print(int32_t* ptr) {
 auto main() -> int32_t {
   int32_t a = 334;
   int32_t* ptr = &a;
-  Print(a);
-  Print(ptr);
-  Print(NULL);
-  Print(nullptr);
+  // Print(a);
+  // Print(ptr);
+  // Print(NULL);
+  // Print(nullptr);
 
   {
     auto start = std::chrono::high_resolution_clock::now();

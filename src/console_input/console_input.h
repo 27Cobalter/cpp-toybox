@@ -3,6 +3,8 @@
 #include <optional>
 
 class ConsoleInput {
+private:
+  void* context_;
 public:
   ConsoleInput();
   ~ConsoleInput();
