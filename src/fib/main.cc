@@ -21,7 +21,25 @@ uint64_t fib_temp() {
   }
 }
 
+void Print(int32_t val) {
+  std::println("{}", val);
+}
+void Print(int32_t* ptr) {
+  if (ptr != NULL) {
+    std::println("{}", *ptr);
+  } else {
+    std::println("NULL");
+  }
+}
+
 auto main() -> int32_t {
+  int32_t a = 334;
+  int32_t* ptr = &a;
+  Print(a);
+  Print(ptr);
+  Print(NULL);
+  Print(nullptr);
+
   {
     auto start = std::chrono::high_resolution_clock::now();
     auto ret   = fib_func(rank);
