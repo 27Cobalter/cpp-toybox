@@ -1,3 +1,5 @@
+#include <print>
+
 #ifdef _WIN32
 #include <Windows.h>
 
@@ -42,6 +44,18 @@ ConsoleInput::~ConsoleInput() {
 std::optional<char> ConsoleInput::NonblockingGetChar() {
   char c;
   if (read(STDIN_FILENO, &c, 1) == 1) {
+    if (c == '\x1b')
+    {
+      std::println("");
+      std::print("[0] esc {:0x}", static_cast<int32_t>(c));
+      char seq;
+      for (int32_t i = 0; read(STDIN_FILENO, &seq, 1) == 1; i++)
+      {
+        std::print(", [{}] {} ({:0x})", i, seq, static_cast<int32_t>(seq));
+      }
+      std::println("");
+      return std::nullopt;
+    }
     return c;
   }
   return std::nullopt;
