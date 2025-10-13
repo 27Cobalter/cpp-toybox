@@ -18,7 +18,7 @@
 ConsoleInput::ConsoleInput() {}
 ConsoleInput::~ConsoleInput() {}
 
-std::optional<char> ConsoleInput::NonBlockingGetChar() {
+std::optional<char> ConsoleInput::TryGetChar() {
   if (_kbhit() == true) {
     int32_t c = _getch();
     return c;
@@ -27,8 +27,8 @@ std::optional<char> ConsoleInput::NonBlockingGetChar() {
   }
 }
 
-std::optional<Key> ConsoleInput::NonBlockingGetKey() {
-  auto c = NonBlockingGetChar();
+std::optional<Key> ConsoleInput::TryGetKey() {
+  auto c = TryGetChar();
 
   if (c.has_value() == false) {
     return std::nullopt;
@@ -43,14 +43,14 @@ std::optional<Key> ConsoleInput::NonBlockingGetKey() {
   } else if (uc >= 'A' && uc <= 'Z') {
     return static_cast<Key>(static_cast<int32_t>(Key::Key_A) + (uc - 'A')); // A-Z
   } else if (uc == 0) {
-    auto uc2 = static_cast<uint8_t>(NonBlockingGetChar().value_or(0));
+    auto uc2 = static_cast<uint8_t>(TryGetChar().value_or(0));
     if (uc2 >= 0x3b && uc2 <= 0x44) {
       return static_cast<Key>(static_cast<int32_t>(Key::Key_F1) + (uc2 - 0x3b)); // F1-F10
     } else {
       assert(false);
     }
   } else if (uc == 0xe0u) {
-    auto uc2 = static_cast<uint8_t>(NonBlockingGetChar().value_or(0));
+    auto uc2 = static_cast<uint8_t>(TryGetChar().value_or(0));
     switch (uc2) {
     case 0x85:
       return Key::Key_F11;
@@ -97,7 +97,7 @@ ConsoleInput::~ConsoleInput() {
   delete old;
 }
 
-std::optional<char> ConsoleInput::NonBlockingGetChar() {
+std::optional<char> ConsoleInput::TryGetChar() {
   char c;
   if (read(STDIN_FILENO, &c, 1) == 1) {
     return c;
@@ -105,8 +105,8 @@ std::optional<char> ConsoleInput::NonBlockingGetChar() {
   return std::nullopt;
 }
 
-std::optional<Key> ConsoleInput::NonBlockingGetKey() {
-  auto c = NonBlockingGetChar();
+std::optional<Key> ConsoleInput::TryGetKey() {
+  auto c = TryGetChar();
 
   if (c.has_value() == false) {
     return std::nullopt;
@@ -120,9 +120,9 @@ std::optional<Key> ConsoleInput::NonBlockingGetKey() {
   } else if (uc >= 'A' && uc <= 'Z') {
     return static_cast<Key>(static_cast<int32_t>(Key::Key_A) + (uc - 'A')); // A-Z
   } else if (uc == 0x1b) {
-    auto uc2 = static_cast<uint8_t>(NonBlockingGetChar().value_or(0));
+    auto uc2 = static_cast<uint8_t>(TryGetChar().value_or(0));
     if (uc2 == 'O') {
-      auto uc3 = static_cast<uint8_t>(NonBlockingGetChar().value_or(0));
+      auto uc3 = static_cast<uint8_t>(TryGetChar().value_or(0));
       switch (uc3) {
       case 'P':
         return Key::Key_F1;
@@ -136,7 +136,7 @@ std::optional<Key> ConsoleInput::NonBlockingGetKey() {
         assert(false);
       }
     } else if (uc2 == '[') {
-      auto uc3 = static_cast<uint8_t>(NonBlockingGetChar().value_or(0));
+      auto uc3 = static_cast<uint8_t>(TryGetChar().value_or(0));
       if (uc3 == 'A') {
         return Key::Key_Up;
       } else if (uc3 == 'B') {
@@ -146,8 +146,8 @@ std::optional<Key> ConsoleInput::NonBlockingGetKey() {
       } else if (uc3 == 'D') {
         return Key::Key_Left;
       } else {
-        auto c4 = NonBlockingGetChar();
-        auto c5 = NonBlockingGetChar();
+        auto c4 = TryGetChar();
+        auto c5 = TryGetChar();
         if (c4.has_value() == true || c5.value_or(0) == '~') {
           auto uc4 = static_cast<uint8_t>(c4.value());
           if (uc3 == '1' && uc4 == '5') {

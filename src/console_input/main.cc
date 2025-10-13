@@ -11,7 +11,7 @@ auto main() -> int32_t {
   ConsoleInput input;
 
   for (;;) {
-    auto key = input.NonBlockingGetKey();
+    auto key = input.TryGetKey();
     if (key) {
       std::println("");
       std::println("key: {}", EnumName(key.value()));

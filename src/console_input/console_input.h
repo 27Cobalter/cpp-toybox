@@ -64,7 +64,7 @@ private:
 public:
   ConsoleInput();
   ~ConsoleInput();
-  std::optional<char> NonBlockingGetChar();
-  std::optional<Key> NonBlockingGetKey();
+  std::optional<char> TryGetChar();
+  std::optional<Key> TryGetKey();
   void FlushInputBuffer();
 };
