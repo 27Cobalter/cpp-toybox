@@ -21,7 +21,7 @@ std::optional<char> ConsoleInput::NonblockingGetChar() {
     if (c == 0 || c == 0xe0) {
       std::println("");
       std::print("[0] special ({:0x})", static_cast<int32_t>(c));
-      for (int32_t i = 0; _kbhit() == true; i++) {
+      for (int32_t i = 1; _kbhit() == true; i++) {
         int32_t c2;
         c2 = _getch();
         std::print(", [{}] {} ({:0x})", i, static_cast<char>(c2), static_cast<int32_t>(c2));
@@ -59,7 +59,7 @@ std::optional<char> ConsoleInput::NonblockingGetChar() {
       std::println("");
       std::print("[0] esc ({:0x})", static_cast<int32_t>(c));
       char seq;
-      for (int32_t i = 0; read(STDIN_FILENO, &seq, 1) == 1; i++) {
+      for (int32_t i = 1; read(STDIN_FILENO, &seq, 1) == 1; i++) {
         std::print(", [{}] {} ({:0x})", i, seq, static_cast<int32_t>(seq));
       }
       std::println("");
