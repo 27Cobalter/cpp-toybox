@@ -5,8 +5,8 @@
             "name": "windows-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "installDir": "${sourceDir}/build/install/${presetName}",
+            "binaryDir": "${sourceDir}/build-preset/${presetName}",
+            "installDir": "${sourceDir}/build/preset/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
                 "CMAKE_CXX_COMPILER": "cl.exe"
@@ -49,8 +49,8 @@
             "name": "linux-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "installDir": "${sourceDir}/build/install/${presetName}",
+            "binaryDir": "${sourceDir}/build-preset/${presetName}",
+            "installDir": "${sourceDir}/build-preset/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "gcc",
                 "CMAKE_CXX_COMPILER": "g++"

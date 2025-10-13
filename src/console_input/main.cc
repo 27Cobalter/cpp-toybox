@@ -4,17 +4,18 @@
 #include <print>
 #include <thread>
 
+#include "enum_utils.h"
 #include "console_input.h"
 
 auto main() -> int32_t {
   ConsoleInput input;
 
   for (;;) {
-    auto key = input.NonblockingGetChar();
+    auto key = input.NonBlockingGetKey();
     if (key) {
       std::println("");
-      std::println("key: {}", key.value());
-      if (key.value() == 'q') {
+      std::println("key: {}", EnumName(key.value()));
+      if (key.value() == Key::Key_Q) {
         break;
       }
     } else {
