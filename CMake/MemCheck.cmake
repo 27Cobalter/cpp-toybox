@@ -23,6 +23,6 @@ elseif(CUSTOM_MEMORYCHECK_TYPE STREQUAL "HELGRIND")
 else()
       message(FATAL_ERROR "CUSTOM_MEMORYCHECK_TYPE Support MEMCHECK or HELGRIND")
 endif()
-string(APPEND MEMORYCHECK_COMMAND_OPTIONS " --error-limt=no --max-threads=20 --max-stackframe=20000000 --main-stacksize=8000000 --num-callers=20")
+string(APPEND MEMORYCHECK_COMMAND_OPTIONS " --error-limit=no --max-threads=20 --max-stackframe=20000000 --main-stacksize=8000000 --num-callers=20")
 
 include(CTest)

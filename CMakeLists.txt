@@ -25,6 +25,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
+include(CMake/Compiler.cmake)
+
 # find_program(CLANG_TIDY_EXECUTABLE clang-tidy REQUIRED)
 # set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXECUTABLE})
 
@@ -34,11 +36,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 if(CMAKE_CXX_COMPILER EQUAL "clang++")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-endif()
-
-if(UNIX)
-  # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=x86-64-v3")
 endif()
 
 find_package(OpenCV)
