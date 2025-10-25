@@ -18,8 +18,8 @@ endif()
 if(NOT MSVC) # GNU like
       string(APPEND CMAKE_CXX_FLAGS " -pipe -fno-plt -fvisibility=hidden -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-Bsymbolic")
       string(APPEND CMAKE_CXX_FLAGS_DEBUG " -g3 -fstack-protector-strong -fstack-clash-protection -D_GLIBCXX_ASSERTIONS -D_LIBCPP_ASSERT -fno-omit-frame-pointer -fno-optimize-sibling-calls -fno-common")
-      string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -g3 -fstack-protector-strong -D_FORTIFY_SOURCE=3")
-      string(APPEND CMAKE_CXX_FLAGS_RELEASE " -g0 -funroll-loops -fno-stack-clash-protection -fno-stack-protector -fomit-frame-pointer -foptimize-sibling-calls -fcommon -flto=auto -s -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+      string(APPEND CMAKE_CXX_FLAGS_RELWITHDEBINFO " -g3 -fno-stack-clash-protection -fno-stack-protector -fomit-frame-pointer -foptimize-sibling-calls -fcommon -flto=auto -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0")
+      string(APPEND CMAKE_CXX_FLAGS_RELEASE " -g0 -fno-stack-clash-protection -fno-stack-protector -fomit-frame-pointer -foptimize-sibling-calls -fcommon -flto=auto -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -s")
 
       # string(APPEND CMAKE_CXX_LINKER_FLAGS " -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-Bsymbolic")
       # string(APPEND CMAKE_CXX_LINKER_FLAGS_DEBUG "")
