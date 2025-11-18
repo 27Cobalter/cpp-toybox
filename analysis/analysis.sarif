@@ -1,0 +1,110 @@
+{
+  "runs": [
+    {
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/cobalt/cpp/cpp-toybox/src/card/Card.cpp"
+                },
+                "region": {
+                  "startColumn": 13,
+                  "startLine": 61
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "operator=() does not handle self-assignment properly"
+          },
+          "ruleId": "cert-oop54-cpp"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/cobalt/cpp/cpp-toybox/src/instruction_info/instruction_info.cc"
+                },
+                "region": {
+                  "startColumn": 17,
+                  "startLine": 13
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "initialization of 'instructioninfo' with static storage duration may throw an exception that cannot be caught"
+          },
+          "relatedLocations": [
+            {
+              "message": {
+                "text": "possibly throwing constructor declared here"
+              },
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/cobalt/cpp/cpp-toybox/src/instruction_info/instruction_info.h"
+                },
+                "region": {
+                  "startColumn": 3,
+                  "startLine": 60
+                }
+              }
+            }
+          ],
+          "ruleId": "cert-err58-cpp"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/cobalt/cpp/cpp-toybox/src/unpack/main.cc"
+                },
+                "region": {
+                  "startColumn": 9,
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "declaration uses identifier '__SSE42__', which is a reserved identifier"
+          },
+          "ruleId": "cert-dcl37-c"
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "/home/cobalt/cpp/cpp-toybox/src/conv/main.cc"
+                },
+                "region": {
+                  "startColumn": 10,
+                  "startLine": 5
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "'omp.h' file not found"
+          },
+          "ruleId": "clang-diagnostic-error"
+        }
+      ],
+      "tool": {
+        "driver": {
+          "name": "clang-tidy"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}
