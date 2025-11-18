@@ -2,6 +2,10 @@ name: analysis
 
 on: workflow_dispatch
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   analysis-run:
     runs-on: ubuntu-latest
