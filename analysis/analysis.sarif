@@ -8,7 +8,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "/home/cobalt/cpp/cpp-toybox/src/card/Card.cpp"
+                  "uri": "src/card/Card.cpp"
                 },
                 "region": {
                   "startColumn": 13,
@@ -28,7 +28,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "/home/cobalt/cpp/cpp-toybox/src/instruction_info/instruction_info.cc"
+                  "uri": "src/instruction_info/instruction_info.cc"
                 },
                 "region": {
                   "startColumn": 17,
@@ -47,7 +47,7 @@
               },
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "/home/cobalt/cpp/cpp-toybox/src/instruction_info/instruction_info.h"
+                  "uri": "src/instruction_info/instruction_info.h"
                 },
                 "region": {
                   "startColumn": 3,
@@ -64,7 +64,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "/home/cobalt/cpp/cpp-toybox/src/unpack/main.cc"
+                  "uri": "src/unpack/main.cc"
                 },
                 "region": {
                   "startColumn": 9,
@@ -84,7 +84,7 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "/home/cobalt/cpp/cpp-toybox/src/conv/main.cc"
+                  "uri": "src/conv/main.cc"
                 },
                 "region": {
                   "startColumn": 10,
