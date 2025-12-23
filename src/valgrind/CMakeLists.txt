@@ -1,4 +1,4 @@
-add_library(valgrind INTERFACE)
+﻿add_library(valgrind INTERFACE)
 target_sources(valgrind INTERFACE valgrind.cc)
 target_include_directories(valgrind INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 

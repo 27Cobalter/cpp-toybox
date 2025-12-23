@@ -1,4 +1,4 @@
-file(GLOB SRC_IMPL "vhadd_impl_*.cc")
+﻿file(GLOB SRC_IMPL "vhadd_impl_*.cc")
 
 add_library(vhadd STATIC "vhadd.cc" "vhadd.h" ${SRC_IMPL})
 target_link_libraries(vhadd PRIVATE InstructionInfo)

@@ -1,4 +1,4 @@
-if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
+﻿if(NOT "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
 
 endif()
 

@@ -1,4 +1,4 @@
-file(GLOB TEST_SOURCE test_*.cc)
+﻿file(GLOB TEST_SOURCE test_*.cc)
 add_executable(test_vhadd ${TEST_SOURCE})
 
 include(GoogleTest)

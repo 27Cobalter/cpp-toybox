@@ -1,1 +1,1 @@
-add_executable(args "main.cc")
+﻿add_executable(args "main.cc")

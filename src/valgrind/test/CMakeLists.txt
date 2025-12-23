@@ -1,4 +1,4 @@
-set(project_name "valgrind")
+﻿set(project_name "valgrind")
 file(GLOB TEST_SOURCE "*.cc")
 add_executable(test_${project_name} ${TEST_SOURCE})
 target_link_libraries(test_${project_name} PRIVATE ${project_name})

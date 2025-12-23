@@ -1,4 +1,4 @@
-file(GLOB TEST_SOURCE "*.cc")
+﻿file(GLOB TEST_SOURCE "*.cc")
 add_executable(test_argument_parser ${TEST_SOURCE})
 target_link_libraries(test_argument_parser PRIVATE argument_parser)
 

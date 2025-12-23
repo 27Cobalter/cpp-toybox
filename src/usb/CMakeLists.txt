@@ -1,4 +1,4 @@
-add_executable(usb_main "main.cc")
+﻿add_executable(usb_main "main.cc")
 
 find_package(PkgConfig)
 pkg_check_modules(LIBUSB_1_0 REQUIRED libusb-1.0)

@@ -1,4 +1,4 @@
-add_library(multi_frame_access STATIC "multi_frame_access.h"
+﻿add_library(multi_frame_access STATIC "multi_frame_access.h"
                                       "multi_frame_access.cc")
 target_include_directories(multi_frame_access PUBLIC .)
 

@@ -1,4 +1,4 @@
-add_executable(conv_main main.cc)
+﻿add_executable(conv_main main.cc)
 
 find_package(OpenCV REQUIRED)
 

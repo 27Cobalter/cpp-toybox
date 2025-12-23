@@ -1,4 +1,4 @@
-option(BULID_INSTRUCTION_TEST "BUILD instruction_info Test" OFF)
+﻿option(BULID_INSTRUCTION_TEST "BUILD instruction_info Test" OFF)
 
 add_library(instruction_info STATIC "instruction_info.cc" "instruction_info.h")
 target_include_directories(instruction_info PUBLIC .)

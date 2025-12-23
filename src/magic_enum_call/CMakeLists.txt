@@ -1,4 +1,4 @@
-add_executable(magic_enum_call main.cc)
+﻿add_executable(magic_enum_call main.cc)
 
 include(FetchContent)
 FetchContent_Declare(
