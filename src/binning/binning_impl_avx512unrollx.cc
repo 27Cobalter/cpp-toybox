@@ -1,3 +1,4 @@
+#pragma GCC target("avx512f,avx512bw,avx512vl")
 #include "binning.h"
 
 #include <bit>
@@ -22,7 +23,7 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Ma
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(reinterpret_cast<const void*>(src.ptr<uint16_t>(y) + x)));
     }
   }
 }
@@ -71,18 +72,18 @@ void Binning<Impl::Avx512UnrollX>::Execute_Impl(const cv::Mat& src, cv::Mat& dst
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride << 1)) {
       const uint16_t* sptryx  = sptry + x;
       const uint16_t* sptryx_ = sptry_ + x;
-      __m512i y0_0            = _mm512_loadu_si512(sptryx);
-      __m512i y0_1            = _mm512_loadu_si512(sptryx_);
+      __m512i y0_0            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx));
+      __m512i y0_1            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_));
       __m512i y1_0, y1_1, y2_0, y2_1, y3_0, y3_1;
       if constexpr (BINNING_Y >= 2) {
-        y1_0 = _mm512_loadu_si512(sptryx + step1);
-        y1_1 = _mm512_loadu_si512(sptryx_ + step1);
+        y1_0 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + step1));
+        y1_1 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_ + step1));
       }
       if constexpr (BINNING_Y == 4) {
-        y2_0 = _mm512_loadu_si512(sptryx + step2);
-        y2_1 = _mm512_loadu_si512(sptryx_ + step2);
-        y3_0 = _mm512_loadu_si512(sptryx + step3);
-        y3_1 = _mm512_loadu_si512(sptryx_ + step3);
+        y2_0 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + step2));
+        y2_1 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_ + step2));
+        y3_0 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + step3));
+        y3_1 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_ + step3));
       }
       if constexpr (BINNING_X >= 2) {
         __m512i y0_0s = _mm512_srli_epi64(y0_0, 16);

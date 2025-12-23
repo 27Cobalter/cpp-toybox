@@ -135,12 +135,12 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epu16>(uint16_t* s
   for (int i = 0; i < data_size; i += step) {
     uint16_t* sptri = src + i;
     __m512i src_sub_v =
-        _mm512_min_epu16(_mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v), uint8_max_div_coeff_v);
+        _mm512_min_epu16(_mm512_subs_epu16(_mm512_loadu_epi16(reinterpret_cast<const void*>(sptri)), lut_min_v), uint8_max_div_coeff_v);
     __m512i dst_v1 = _mm512_srli_epi16(_mm512_mullo_epi16(src_sub_v, coeff_v), 8);
 
     // half
     src_sub_v =
-        _mm512_min_epu16(_mm512_subs_epu16(_mm512_loadu_epi16(sptri + half_step), lut_min_v), uint8_max_div_coeff_v);
+        _mm512_min_epu16(_mm512_subs_epu16(_mm512_loadu_epi16(reinterpret_cast<const void*>(sptri + half_step)), lut_min_v), uint8_max_div_coeff_v);
     __m512i dst_v2 = _mm512_srli_epi16(_mm512_mullo_epi16(src_sub_v, coeff_v), 8);
 
     __m512i dst_v = _mm512_permutex2var_epi8(dst_v1, permute_index_v, dst_v2);
@@ -166,7 +166,7 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
                                      17, 21, 25, 29, 0x40 | 17, 0x40 | 21, 0x40 | 25, 0x40 | 29,
                                      33, 37, 41, 45, 0x40 | 33, 0x40 | 37, 0x40 | 41, 0x40 | 45,
                                      49, 53, 57, 61, 0x40 | 49, 0x40 | 53, 0x40 | 57, 0x40 | 61};
-  const __m512i permute_index_v   = _mm512_loadu_si512(permute_index);
+  const __m512i permute_index_v   = _mm512_loadu_si512(reinterpret_cast<const void*>(permute_index));
   // setr_epi8 not exists
   // const __m512i permute_index_v = _mm512_set_epi8(
   //     60 | 0x40, 56 | 0x40, 52 | 0x40, 48 | 0x40, 60, 56, 52, 48,
@@ -182,7 +182,7 @@ void LUT::Convert_Impl<LUT::Method::avx512vbmi_calc_intweight_epi32>(uint16_t* s
   int i                  = 0;
   for (; i < loop_end; i += step) {
     uint16_t* sptri   = src + i;
-    __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(sptri), lut_min_v);
+    __m512i src_sub_v = _mm512_subs_epu16(_mm512_loadu_epi16(reinterpret_cast<const void*>(sptri)), lut_min_v);
     __m512i srcs_hi   = _mm512_unpackhi_epi16(src_sub_v, zero_v);
     __m512i srcs_lo   = _mm512_unpacklo_epi16(src_sub_v, zero_v);
     __m512i val_hi    = _mm512_mullo_epi32(coeff_v, srcs_hi);

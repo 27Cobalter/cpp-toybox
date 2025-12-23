@@ -1,3 +1,4 @@
+#pragma GCC target("avx512f,avx512bw,avx512vl")
 #include "binning.h"
 
 #include <bit>
@@ -23,7 +24,7 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl<1, 1>(const cv::Mat& src, cv::
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(reinterpret_cast<const void*>(src.ptr<uint16_t>(y) + x)));
     }
   }
 }
@@ -53,7 +54,7 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
     if constexpr (BINNING_Y >= 2) {
       const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
       for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
-        __m512i sv = _mm512_loadu_si512(sptry + x);
+        __m512i sv = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry + x));
         if constexpr (BINNING_X == 2) {
           sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
         } else if constexpr (BINNING_X == 4) {
@@ -65,8 +66,8 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
       for (y_b = 1; y_b < BINNING_Y - 1; y_b++) {
         const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
         for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
-          __m512i sv = _mm512_loadu_si512(sptry + x);
-          __m512i bv = _mm512_loadu_si512(bptr + x);
+          __m512i sv = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry + x));
+          __m512i bv = _mm512_loadu_si512(reinterpret_cast<const void*>(bptr + x));
           if constexpr (BINNING_X == 2) {
             sv = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
           } else if constexpr (BINNING_X == 4) {
@@ -82,12 +83,12 @@ void Binning<Impl::Avx512SeqBuffer>::Execute_Impl(const cv::Mat& src, cv::Mat& d
       uint16_t* dptry       = dst.ptr<uint16_t>(y >> shift_y);
       const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
       for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
-        __m512i sv = _mm512_loadu_si512(sptry + x);
+        __m512i sv = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry + x));
         __m512i bv;
         if constexpr (BINNING_Y == 1) {
           bv = _mm512_setzero_si512();
         } else {
-          bv = _mm512_loadu_si512(bptr + x);
+          bv = _mm512_loadu_si512(reinterpret_cast<const void*>(bptr + x));
         }
         if constexpr (BINNING_X == 1) {
           bv = _mm512_adds_epu16(bv, sv);

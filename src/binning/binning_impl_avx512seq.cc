@@ -1,3 +1,4 @@
+#pragma GCC target("avx512f,avx512bw,avx512vl")
 #include "binning.h"
 
 #include <bit>
@@ -22,7 +23,7 @@ void Binning<Impl::Avx512Seq>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& d
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(reinterpret_cast<const void*>(src.ptr<uint16_t>(y) + x)));
     }
   }
 }
@@ -51,14 +52,14 @@ void Binning<Impl::Avx512Seq>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
     for (; y_b < BINNING_Y; y_b++) {
       const uint16_t* sptry = src.ptr<uint16_t>(y + y_b);
       for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
-        __m512i sv = _mm512_loadu_si512(sptry + x);
+        __m512i sv = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry + x));
         if constexpr (BINNING_X == 2) {
-          __m256i dv = _mm256_loadu_si256(reinterpret_cast<__m256i*>(dptry + (x >> shift_x)));
+          __m256i dv = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(dptry + (x >> shift_x)));
           sv         = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
           dv         = _mm256_adds_epu16(dv, _mm512_cvtepi32_epi16(sv));
           _mm256_storeu_si256(reinterpret_cast<__m256i*>(dptry + (x >> shift_x)), dv);
         } else if constexpr (BINNING_X == 4) {
-          __m128i dv = _mm_loadu_si128(reinterpret_cast<__m128i*>(dptry + (x >> shift_x)));
+          __m128i dv = _mm_loadu_si128(reinterpret_cast<const __m128i*>(dptry + (x >> shift_x)));
           sv         = _mm512_maskz_adds_epu16(mask2, sv, _mm512_srli_epi64(sv, 16));
           sv         = _mm512_maskz_adds_epu16(mask4, sv, _mm512_srli_epi64(sv, 32));
           dv         = _mm_adds_epu16(dv, _mm512_cvtepi64_epi16(sv));

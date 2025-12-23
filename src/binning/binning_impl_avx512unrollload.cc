@@ -1,3 +1,4 @@
+#pragma GCC target("avx512f,avx512bw,avx512vl")
 #include "binning.h"
 
 #include <bit>
@@ -23,7 +24,7 @@ void Binning<Impl::Avx512UnrollLoad>::Execute_Impl<1, 1>(const cv::Mat& src, cv:
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(reinterpret_cast<const void*>(src.ptr<uint16_t>(y) + x)));
     }
   }
 }
@@ -70,19 +71,19 @@ void Binning<Impl::Avx512UnrollLoad>::Execute_Impl(const cv::Mat& src, cv::Mat& 
     const uint16_t* sptry_ = sptry + stride;
     uint16_t* dptry        = dst.ptr<uint16_t>(y >> shift_y);
 
-    __m512i y0_0              = _mm512_loadu_si512(sptry);
-    __m512i y0_1              = _mm512_loadu_si512(sptry_);
-    __m512i y1_0              = _mm512_loadu_si512(sptry + step1);
-    __m512i y1_1              = _mm512_loadu_si512(sptry_ + step1);
+    __m512i y0_0              = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry));
+    __m512i y0_1              = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry_));
+    __m512i y1_0              = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry + step1));
+    __m512i y1_1              = _mm512_loadu_si512(reinterpret_cast<const void*>(sptry_ + step1));
     constexpr int32_t stride2 = stride << 1;
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride << 1)) {
       const uint16_t* sptryxb  = sptry + x;
       const uint16_t* sptryxb_ = sptry_ + x;
 
-      __m512i y2_0            = _mm512_loadu_si512(sptryxb + step2);
-      __m512i y2_1            = _mm512_loadu_si512(sptryxb_ + step2);
-      __m512i y3_0            = _mm512_loadu_si512(sptryxb + step3);
-      __m512i y3_1            = _mm512_loadu_si512(sptryxb_ + step3);
+      __m512i y2_0            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryxb + step2));
+      __m512i y2_1            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryxb_ + step2));
+      __m512i y3_0            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryxb + step3));
+      __m512i y3_1            = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryxb_ + step3));
       const uint16_t* sptryx  = sptryxb + stride2;
       const uint16_t* sptryx_ = sptryxb_ + stride2;
       __m512i ret0, ret1;
@@ -95,8 +96,8 @@ void Binning<Impl::Avx512UnrollLoad>::Execute_Impl(const cv::Mat& src, cv::Mat& 
         ret0          = _mm512_adds_epu16(y0_0, y0_0s);
         ret1          = _mm512_adds_epu16(y0_1, y0_1s);
       }
-      y0_0 = _mm512_loadu_si512(sptryx);
-      y0_1 = _mm512_loadu_si512(sptryx_);
+      y0_0 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx));
+      y0_1 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_));
 
       if constexpr (BINNING_Y >= 2) {
         if constexpr (BINNING_X >= 2) {
@@ -107,8 +108,8 @@ void Binning<Impl::Avx512UnrollLoad>::Execute_Impl(const cv::Mat& src, cv::Mat& 
         }
         ret0 = _mm512_maskz_adds_epu16(mask, ret0, y1_0);
         ret1 = _mm512_maskz_adds_epu16(mask, ret1, y1_1);
-        y1_0 = _mm512_loadu_si512(sptryx + step1);
-        y1_1 = _mm512_loadu_si512(sptryx_ + step1);
+        y1_0 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + step1));
+        y1_1 = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx_ + step1));
       }
 
       if constexpr (BINNING_Y == 4) {

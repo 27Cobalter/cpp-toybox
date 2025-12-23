@@ -50,7 +50,7 @@ void MyHisto::Create_Impl<MyHisto::Method::AVX512VPOPCNTDQ>(uint16_t* source, in
   const int32_t loop_end = data_size - step + 1;
   int32_t i              = 0;
   for (; i < loop_end; i += step) {
-    const __m512i src_v = _mm512_loadu_si512(source + i);
+    const __m512i src_v = _mm512_loadu_si512(reinterpret_cast<const void*>(source + i));
 
     __m512i src_half  = _mm512_unpacklo_epi16(src_v, zero_v);
     __m512i conflict  = _mm512_conflict_epi32(src_half);
@@ -133,8 +133,8 @@ void MyHisto::Create_Impl<MyHisto::Method::Naive_MultiSubloop>(uint16_t* source,
 
 #pragma omp for nowait
     for (int32_t j = 0; j < range_max; j += step) {
-      __m512i tmp = _mm512_loadu_si512(hptr + range_max + j);
-      __m512i src = _mm512_loadu_si512(hptr + j);
+      __m512i tmp = _mm512_loadu_si512(reinterpret_cast<const void*>(hptr + range_max + j));
+      __m512i src = _mm512_loadu_si512(reinterpret_cast<const void*>(hptr + j));
       _mm512_storeu_si512(hptr + j, _mm512_add_epi32(tmp, src));
     }
   }

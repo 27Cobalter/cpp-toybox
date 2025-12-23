@@ -1,3 +1,5 @@
+#pragma GCC target("avx512f,avx512bw,avx512vl")
+
 #include "binning.h"
 
 #include <bit>
@@ -24,7 +26,7 @@ void Binning<Impl::Avx512>::Execute_Impl<1, 1>(const cv::Mat& src, cv::Mat& dst)
   assert(src.type() == CV_16UC1);
   for (auto y : std::views::iota(0, src.rows)) {
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(512 / 8 / sizeof(uint16_t))) {
-      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(src.ptr<uint16_t>(y) + x));
+      _mm512_storeu_si512(dst.ptr<uint16_t>(y) + x, _mm512_loadu_si512(reinterpret_cast<const void*>(src.ptr<uint16_t>(y) + x)));
     }
   }
 }
@@ -52,8 +54,8 @@ void Binning<Impl::Avx512>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
     constexpr __mmask32 mask4 = 0b00010001000100010001000100010001;
     for (auto x : std::views::iota(0, src.cols) | std::views::stride(stride)) {
       const uint16_t* sptryx = src.ptr<uint16_t>(y + 0) + x;
-      __m512i y0             = _mm512_loadu_si512(sptryx);
-      __m512i y1             = _mm512_loadu_si512(sptryx + src.step1());
+      __m512i y0             = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx));
+      __m512i y1             = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + src.step1()));
       __m512i y0_            = _mm512_srli_epi64(y0, 16);
       __m512i y1_            = _mm512_srli_epi64(y1, 16);
       y0                     = _mm512_adds_epu16(y0, y0_);
@@ -61,8 +63,8 @@ void Binning<Impl::Avx512>::Execute_Impl(const cv::Mat& src, cv::Mat& dst) {
       y0                     = _mm512_maskz_adds_epu16(mask2, y0, y1);
 
       if constexpr (BINNING_Y == 4) {
-        __m512i y2  = _mm512_loadu_si512(sptryx + src.step1() * 2);
-        __m512i y3  = _mm512_loadu_si512(sptryx + src.step1() * 3);
+        __m512i y2  = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + src.step1() * 2));
+        __m512i y3  = _mm512_loadu_si512(reinterpret_cast<const void*>(sptryx + src.step1() * 3));
         __m512i y2_ = _mm512_srli_epi64(y2, 16);
         __m512i y3_ = _mm512_srli_epi64(y3, 16);
         y2          = _mm512_adds_epu16(y2, y2_);
