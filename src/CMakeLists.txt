@@ -2,6 +2,7 @@
 
 endif()
 
+add_subdirectory(alloc_initializer)
 add_subdirectory(args)
 add_subdirectory(argstorage)
 add_subdirectory(argument_parser)
