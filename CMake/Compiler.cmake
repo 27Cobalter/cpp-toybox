@@ -28,4 +28,6 @@ if(NOT MSVC) # GNU like
 
       if(UNIX)
       endif()
+else()
+      string(APPEND CMAKE_CXX_FLAGS " /EHsc")
 endif()
