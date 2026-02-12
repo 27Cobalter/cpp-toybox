@@ -2,8 +2,8 @@
 
 endif()
 
-add_subdirectory(aligned_sum)
-add_subdirectory(alloc_initializer)
+# add_subdirectory(aligned_sum)
+# add_subdirectory(alloc_initializer)
 add_subdirectory(args)
 add_subdirectory(argstorage)
 add_subdirectory(argument_parser)
@@ -23,6 +23,7 @@ add_subdirectory(instruction_info)
 # add_subdirectory(lut)
 add_subdirectory(magic_enum_call)
 add_subdirectory(multi_frame_access)
+add_subdirectory(scoped_handle)
 add_subdirectory(shared_proj)
 add_subdirectory(stack_hist)
 add_subdirectory(unpack)
